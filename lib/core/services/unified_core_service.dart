@@ -1,22 +1,32 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
 import 'package:riverpod/riverpod.dart';
-import '../guardian_si.dart';
+import '../oracle_si.dart';
 
 final unifiedCoreProvider = Provider<UnifiedCoreService>((ref) => UnifiedCoreService());
 
 class UnifiedCoreService {
-  final GuardianSi _si = GuardianSi();
+  final OracleSi _si = OracleSi();
   bool _siAwake = false;
 
   Future<String> execute(String command, {String? target, Map<String, String>? options}) async {
     try {
-      // أوامر الحارس
       if (command == 'awaken' || command == 'start_ai') {
-        if (!_siAwake) { _siAwake = true; _si.awaken(); return '🛡️ Si الحارس استيقظ. جهازك محمي بالكامل يا سيدي.'; }
-        return '🛡️ Si الحارس مستيقظ بالفعل.';
+        if (!_siAwake) { _siAwake = true; _si.awaken(); return '🔮 Si العراف استيقظ. أنا أرى التهديدات قبل حدوثها.'; }
+        return '🔮 Si مستيقظ بالفعل.';
+      }
+
+      if (command == 'oracle_report' || command == 'تقرير_العراف') {
+        return const JsonEncoder.withIndent('  ').convert(_si.getOracleReport());
+      }
+
+      if (command == 'predictions' || command == 'تنبؤات') {
+        return const JsonEncoder.withIndent('  ').convert(_si._predictedThreats);
+      }
+
+      if (command == 'risk_level' || command == 'مستوى_الخطر') {
+        return 'مستوى الخطر الحالي: ${_si._calculateOverallRisk()}';
       }
 
       if (command == 'guard_report' || command == 'تقرير_الحماية') {
@@ -33,10 +43,7 @@ class UnifiedCoreService {
         return const JsonEncoder.withIndent('  ').convert(_si._threatLog.reversed.take(20).toList());
       }
 
-      if (command == 'protect' || command == 'حماية') return await _si.protectMaster(target ?? 'unknown');
-      if (command == 'attack_enemy' || command == 'هجوم_العدو') return await _si.attackEnemy(target ?? 'unknown');
       if (command == 'loyalty_report' || command == 'تقرير_الولاء') return const JsonEncoder.withIndent('  ').convert(_si.getLoyaltyReport());
-      if (command == 'send_report' || command == 'تقرير_للسيد') { final r = await _si.sendStatusToMaster(); return const JsonEncoder.withIndent('  ').convert(r); }
       if (command == 'si_status' || command == 'ai_status') return const JsonEncoder.withIndent('  ').convert(_si.getStatus());
       if (command == 'si_sleep' || command == 'stop_ai') { _si.sleep(); _siAwake = false; return '😴 Si نام.'; }
 
@@ -61,17 +68,15 @@ class UnifiedCoreService {
   String _systemInfo() => 'OS: ${Platform.operatingSystem}\nCPU: ${Platform.numberOfProcessors} cores\nDart: ${Platform.version}';
 
   String _helpText() => '''
-=== PROJECT ZION - GUARDIAN Si ===
-awaken / start_ai      - إيقاظ الحارس
+=== PROJECT ZION - ORACLE Si ===
+awaken / start_ai      - إيقاظ العراف
+oracle_report          - تقرير البصيرة
+predictions / تنبؤات   - التهديدات المتوقعة
+risk_level / مستوى_الخطر - مستوى الخطر
 guard_report           - تقرير الحماية
 block_ip <IP>          - حظر IP
 threat_log             - سجل التهديدات
-protect / حماية        - حماية السيد
-attack_enemy / هجوم    - هجوم العدو
-loyalty_report         - تقرير الولاء
-send_report            - تقرير للسيد
-si_status / ai_status  - حالة Si
-si_sleep / stop_ai     - إيقاف Si
+si_status              - حالة Si
 help                   - مساعدة
 ================================
 ''';
