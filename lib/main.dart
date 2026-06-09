@@ -1,36 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'zion_home.dart';
+import 'package:provider/provider.dart';
+import 'core/wm/window_manager.dart';
+import 'zion_desktop.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-  ));
-  runApp(const ZionLauncher());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
+  runApp(ChangeNotifierProvider(create: (_) => WindowManager(), child: const ZionOS()));
 }
 
-class ZionLauncher extends StatelessWidget {
-  const ZionLauncher({super.key});
+class ZionOS extends StatelessWidget {
+  const ZionOS({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Zion Launcher',
+      title: 'Zion Linux',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-        fontFamily: 'Cairo',
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00FF41),
-          secondary: Color(0xFF00FF41),
-          surface: Color(0xFF0A0E0A),
-        ),
-      ),
-      home: const ZionHome(),
+      theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: Colors.black, fontFamily: 'monospace'),
+      home: const ZionDesktop(),
     );
   }
 }
