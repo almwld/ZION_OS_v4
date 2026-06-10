@@ -139,3 +139,78 @@ class _ZionWiFiRealPanelState extends State<ZionWiFiRealPanel> {
     );
   }
 }
+
+  // إضافة أزرار للاستراتيجيات الجديدة
+  
+  Widget _buildStrategyButtons() {
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _StrategyButton(
+              label: '🔑 WPS PIN',
+              color: Colors.blue,
+              onTap: () => _runSingleAttack('wps'),
+            ),
+            _StrategyButton(
+              label: '🏠 Router Default',
+              color: Colors.green,
+              onTap: () => _runSingleAttack('router'),
+            ),
+            _StrategyButton(
+              label: '🎭 Evil Twin',
+              color: Colors.purple,
+              onTap: () => _runSingleAttack('eviltwin'),
+            ),
+            _StrategyButton(
+              label: '💣 CVE Exploits',
+              color: Colors.red,
+              onTap: () => _runSingleAttack('exploits'),
+            ),
+            _StrategyButton(
+              label: '🧠 AI Guesser',
+              color: Colors.orange,
+              onTap: () => _runSingleAttack('ai'),
+            ),
+            _StrategyButton(
+              label: '👤 Guest Network',
+              color: Colors.teal,
+              onTap: () => _runSingleAttack('guest'),
+            ),
+            _StrategyButton(
+              label: '🔌 UPnP',
+              color: Colors.indigo,
+              onTap: () => _runSingleAttack('upnp'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StrategyButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  
+  const _StrategyButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+    );
+  }

