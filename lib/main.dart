@@ -315,3 +315,23 @@ class ZionAdvancedWidget extends StatelessWidget {
     );
   }
 }
+
+// إضافة استيراد واجهة WiFi
+import 'src/features/wifi/zion_wifi_panel.dart';
+
+// إضافة أيقونة WiFi إلى سطح المكتب
+// في _buildDesktopIcons() أضف:
+/*
+DesktopIconItem(
+  icon: Icons.wifi,
+  label: 'ZionWiFi',
+  color: Colors.deepPurple,
+  onTap: () => _openWindow(OpenWindow(
+    id: _nextWindowId++,
+    title: 'ZionWiFi - Wireless Attack Platform',
+    widget: const ZionWiFiPanel(),
+    position: Offset(350, 200),
+    size: const Size(900, 600),
+  )),
+),
+*/

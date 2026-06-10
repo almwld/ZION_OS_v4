@@ -488,3 +488,73 @@ class TerminalLine {
     required this.timestamp,
   });
 }
+
+  // ==================== أوامر WiFi ====================
+  
+  case 'wifiscan':
+    _addLine('📡 Scanning for networks...');
+    final networks = await ZionWiFi().scanAllNetworks();
+    if (networks.isEmpty) {
+      result = 'No networks found';
+    } else {
+      result = 'Found ${networks.length} networks:\n';
+      for (final n in networks) {
+        result += '  ${n.ssid.isNotEmpty ? n.ssid : "<hidden>"} (${n.bssid}) - ${n.security} - ${n.signalStrength}dBm\n';
+      }
+    }
+    break;
+    
+  case 'hidden':
+    _addLine('🕵️ Searching for hidden networks...');
+    final hidden = await ZionWiFi().discoverHiddenNetworks();
+    if (hidden.isEmpty) {
+      result = 'No hidden networks found';
+    } else {
+      result = 'Found ${hidden.length} hidden networks:\n';
+      for (final h in hidden) {
+        result += '  ${h.hiddenSSID} → ${h.realSSID} (${h.bssid})\n';
+      }
+    }
+    break;
+    
+  case 'wps':
+    if (args.isEmpty) {
+      result = 'Usage: wps <BSSID>\nExample: wps 00:11:22:33:44:55';
+    } else {
+      _addLine('🎯 Attacking WPS on ${args[0]}...');
+      final wpsResult = await ZionWiFi().attackWPS(args[0]);
+      if (wpsResult.success) {
+        result = '✅ WPS PIN found: ${wpsResult.pin}\n🔑 Connected: ${wpsResult.connected}\n⏱️ Attempts: ${wpsResult.attempts}\n⏱️ Duration: ${wpsResult.duration.inSeconds}s';
+      } else {
+        result = '❌ WPS attack failed after ${wpsResult.attempts} attempts';
+      }
+    }
+    break;
+    
+  case 'pmkid':
+    if (args.isEmpty) {
+      result = 'Usage: pmkid <BSSID>\nExample: pmkid 00:11:22:33:44:55';
+    } else {
+      _addLine('🔓 Attacking PMKID on ${args[0]}...');
+      final pmkidResult = await ZionWiFi().attackPMKID(args[0]);
+      if (pmkidResult.success) {
+        result = '✅ PMKID captured: ${pmkidResult.pmkid}\n🔑 Password: ${pmkidResult.password}\n⏱️ Duration: ${pmkidResult.duration.inSeconds}s';
+      } else {
+        result = '❌ PMKID attack failed: ${pmkidResult.error}';
+      }
+    }
+    break;
+    
+  case 'wifite':
+    if (args.isEmpty) {
+      result = 'Usage: wifite <BSSID>\nExample: wifite 00:11:22:33:44:55';
+    } else {
+      _addLine('💀 Starting full Wifite-style attack on ${args[0]}...');
+      final attackResult = await ZionWiFi().fullAttack(args[0]);
+      if (attackResult.success) {
+        result = '✅ ATTACK SUCCESSFUL!\n🔑 Password: ${attackResult.password}\n⏱️ Duration: ${attackResult.duration.inSeconds}s\n📊 Steps: ${attackResult.steps.keys.join(", ")}';
+      } else {
+        result = '❌ Attack failed after ${attackResult.duration.inSeconds}s\nNo password found for ${args[0]}';
+      }
+    }
+    break;
