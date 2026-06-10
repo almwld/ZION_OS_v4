@@ -23,39 +23,61 @@ jobs:
           flutter-version: '3.22.0'
           channel: 'stable'
       
+      - name: Create missing asset directories
+        run: |
+          mkdir -p assets/images
+          mkdir -p assets/fonts
+          touch assets/images/.gitkeep
+          touch assets/fonts/.gitkeep
+      
+      - name: Clean Gradle cache
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew clean || true
+          cd ..
+          rm -rf ~/.gradle/caches/ || true
+      
       - name: Install dependencies
         run: flutter pub get
       
       - name: Generate launcher icons
         run: flutter pub run flutter_launcher_icons:main
       
-      - name: Build APK (split per ABI)
+      - name: 🔨 Build APK (split per ABI)
         run: flutter build apk --release --split-per-abi
       
-      - name: Create ZIP archives for each architecture
-        run: |
-          mkdir -p build/outputs/zipped
-          cd build/app/outputs/flutter-apk
-          for apk in app-*.apk; do
-            arch=$(echo "$apk" | sed 's/app-//' | sed 's/-release.apk//')
-            zip "../../outputs/zipped/project_zion_${arch}.zip" "$apk"
-          done
-          cd -
-      
-      - name: Upload ZIP - armeabi-v7a
-        uses: actions/upload-artifact@v4
-        with:
-          name: project-zion-armeabi-v7a
-          path: build/outputs/zipped/project_zion_armeabi-v7a.zip
-      
-      - name: Upload ZIP - arm64-v8a
+      - name: 📤 Upload arm64-v8a
         uses: actions/upload-artifact@v4
         with:
           name: project-zion-arm64-v8a
-          path: build/outputs/zipped/project_zion_arm64-v8a.zip
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 30
       
-      - name: Upload ZIP - universal
+      - name: 📤 Upload armeabi-v7a
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zion-armeabi-v7a
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 30
+      
+      - name: 📤 Upload x86
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zion-x86
+          path: build/app/outputs/flutter-apk/app-x86-release.apk
+          retention-days: 30
+      
+      - name: 📤 Upload x86_64
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zion-x86_64
+          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+          retention-days: 30
+      
+      - name: 📤 Upload universal
         uses: actions/upload-artifact@v4
         with:
           name: project-zion-universal
-          path: build/outputs/zipped/project_zion_universal.zip
+          path: build/app/outputs/flutter-apk/app-universal-release.apk
+          retention-days: 30
