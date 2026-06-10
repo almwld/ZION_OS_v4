@@ -17,7 +17,7 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
   void initState() {
     super.initState();
     _addLine('═══════════════════════════════════════════════════════════════', false, false);
-    _addLine('🔥 ZION OS v3.0 - COSMIC TERMINAL', false, false);
+    _addLine('🔥 ZION OS v3.1 - COSMIC TERMINAL', false, false);
     _addLine('═══════════════════════════════════════════════════════════════', false, false);
     _addLine('', false, false);
     _addLine('📌 Available Commands:', false, false);
@@ -58,7 +58,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
   Future<void> _executeCommand(String command) async {
     if (command.trim().isEmpty) return;
     
-    _addLine('zion@os:~$ ${command.trim()}', true, false);
+    final prompt = 'zion@os:~$ ';
+    _addLine('$prompt${command.trim()}', true, false);
     _inputController.clear();
     setState(() => _isExecuting = true);
 
@@ -114,7 +115,7 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
       _addLine('╔═══════════════════════════════════════════════════════════════╗', false, false);
       _addLine('║                      SYSTEM STATUS                            ║', false, false);
       _addLine('╠═══════════════════════════════════════════════════════════════╣', false, false);
-      _addLine('║  Version:     Zion OS v3.0                                   ║', false, false);
+      _addLine('║  Version:     Zion OS v3.1                                   ║', false, false);
       _addLine('║  Build:       Final Release                                  ║', false, false);
       _addLine('║  Tools:       1000+ Security Tools                           ║', false, false);
       _addLine('║  SI Agent:    Active & Learning                              ║', false, false);
@@ -160,6 +161,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
 
   @override
   Widget build(BuildContext context) {
+    final promptText = 'zion@os:~$ ';
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
@@ -219,7 +222,7 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const Text('zion@os:~$ ', style: TextStyle(color: Color(0xFF00FF41), fontWeight: FontWeight.bold)),
+                Text(promptText, style: const TextStyle(color: Color(0xFF00FF41), fontWeight: FontWeight.bold)),
                 Expanded(
                   child: TextField(
                     controller: _inputController,

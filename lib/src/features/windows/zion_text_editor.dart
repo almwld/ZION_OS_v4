@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ZionTextEditor extends StatefulWidget {
   const ZionTextEditor({super.key});
@@ -14,34 +14,25 @@ class _ZionTextEditorState extends State<ZionTextEditor> {
   String _currentFile = '';
   bool _isModified = false;
 
-  Future<void> _openFile() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      final file = File(result.files.single.path!);
-      final content = await file.readAsString();
-      _controller.text = content;
-      setState(() {
-        _currentFile = result.files.single.name;
-        _isModified = false;
-      });
-    }
+  Future<void> _newFile() async {
+    setState(() {
+      _controller.clear();
+      _currentFile = '';
+      _isModified = false;
+    });
   }
 
   Future<void> _saveFile() async {
     if (_currentFile.isEmpty) {
-      final result = await FilePicker.platform.saveFile();
-      if (result != null) {
-        _currentFile = result;
-      }
+      final dir = await getApplicationDocumentsDirectory();
+      _currentFile = '${dir.path}/untitled.txt';
     }
-    if (_currentFile.isNotEmpty) {
-      final file = File(_currentFile);
-      await file.writeAsString(_controller.text);
-      setState(() => _isModified = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File saved')),
-      );
-    }
+    final file = File(_currentFile);
+    await file.writeAsString(_controller.text);
+    setState(() => _isModified = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('File saved')),
+    );
   }
 
   @override
@@ -49,12 +40,12 @@ class _ZionTextEditorState extends State<ZionTextEditor> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(_currentFile.isEmpty ? 'Untitled' : _currentFile),
-        backgroundColor: Colors.purple.shade900,
+        title: Text(_currentFile.isEmpty ? 'Untitled' : _currentFile.split('/').last),
+        backgroundColor: Colors.pink.shade900,
         actions: [
           IconButton(
-            icon: const Icon(Icons.folder_open),
-            onPressed: _openFile,
+            icon: const Icon(Icons.note_add),
+            onPressed: _newFile,
           ),
           IconButton(
             icon: const Icon(Icons.save),
