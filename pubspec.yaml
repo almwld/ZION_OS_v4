@@ -1,7 +1,6 @@
 name: project_zion
-description: Project Zion - منصة الاختراق المتنقلة المتكاملة
-publish_to: 'none'
-version: 3.0.0+3
+description: Zion OS - نظام تشغيل للاختراق
+version: 2.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -9,31 +8,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.4.9
-  path_provider: ^2.1.1
-  http: ^1.1.0
-  google_fonts: ^6.1.0
-  fl_chart: ^0.65.0
-  share_plus: ^7.2.1
-  flutter_secure_storage: ^9.0.0
-  local_auth: ^2.1.7
-  pdf: ^3.10.7
-  printing: ^5.11.1
-  intl: ^0.18.1
-  connectivity_plus: ^5.0.2
-  package_info_plus: ^5.0.1
-  url_launcher: ^6.2.1
-  animations: ^2.0.8
-  shimmer: ^3.0.0
-  lottie: ^2.6.0
-  provider: ^6.0.5
-  percent_indicator: ^4.2.2
+  flutter_riverpod: ^2.5.1
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.3
+  permission_handler: ^11.3.0
+  connectivity_plus: ^6.0.0
+  network_info_plus: ^5.0.0
+  flutter_secure_storage: ^9.2.0
+  crypto: ^3.0.4
+  http: ^1.2.0
+  intl: ^0.19.0
+  url_launcher: ^6.3.0
+  share_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
@@ -41,9 +32,3 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/fonts/
-
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/icons/app_icon.png"
-  min_sdk_android: 21
