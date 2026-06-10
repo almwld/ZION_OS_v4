@@ -58,7 +58,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
   Future<void> _executeCommand(String command) async {
     if (command.trim().isEmpty) return;
     
-    final prompt = 'zion@os:~$ ';
+    // استخدام escape لعلامة $
+    final prompt = 'zion@os:~' + '\$ ';
     _addLine('$prompt${command.trim()}', true, false);
     _inputController.clear();
     setState(() => _isExecuting = true);
@@ -161,7 +162,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
 
   @override
   Widget build(BuildContext context) {
-    final promptText = 'zion@os:~$ ';
+    // استخدام escape لعلامة $
+    final promptText = 'zion@os:~' + '\$ ';
     
     return Scaffold(
       backgroundColor: Colors.black,
