@@ -4,7 +4,7 @@ class CosmicTerminal extends StatefulWidget {
   const CosmicTerminal({super.key});
 
   @override
-  State<CosmicTerminal> createState() => _CosmicTerminalState();
+State<CosmicTerminal> createState() => _CosmicTerminalState();
 }
 
 class _CosmicTerminalState extends State<CosmicTerminal> {
@@ -45,8 +45,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
   Future<void> _executeCommand(String command) async {
     if (command.trim().isEmpty) return;
     
-    // استخدام concat لتجنب مشكلة $
-    final prompt = 'zion@os:~$ ';
+    // استخدام \$ لتجنب مشكلة interpolation
+    final prompt = 'zion@os:~\$ ';
     _addLine('$prompt${command.trim()}');
     _inputController.clear();
     setState(() => _isExecuting = true);
@@ -95,7 +95,8 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
 
   @override
   Widget build(BuildContext context) {
-    final promptText = 'zion@os:~$ ';
+    // استخدام \$ لتجنب مشكلة interpolation
+    final promptText = 'zion@os:~\$ ';
     
     return Scaffold(
       backgroundColor: Colors.black,
