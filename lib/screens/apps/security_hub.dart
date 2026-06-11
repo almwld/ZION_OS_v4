@@ -204,3 +204,102 @@ class _SecurityHubAppState extends State<SecurityHubApp> {
     );
   }
 }
+
+// إضافة استيراد الخدمة
+import '../../core/services/root_service.dart';
+
+// إضافة متغيرات الحالة في بداية الـ State
+  final RootService _rootService = RootService();
+  Map<String, dynamic> _rootStatus = {};
+  bool _isLoadingRoot = false;
+  String _rootTestResult = '';
+
+// إضافة دالة لتحميل حالة الجذر
+  Future<void> _loadRootStatus() async {
+    setState(() => _isLoadingRoot = true);
+    _rootStatus = await _rootService.getRootStatus();
+    setState(() => _isLoadingRoot = false);
+  }
+
+// إضافة دالة لاختبار الجذر
+  Future<void> _testRoot() async {
+    setState(() => _isLoadingRoot = true);
+    _rootTestResult = await _rootService.testRootAccess();
+    setState(() => _isLoadingRoot = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_rootTestResult), backgroundColor: const Color(0xFF00BCD4)),
+    );
+  }
+
+// إضافة دالة لطلب صلاحيات الجذر
+  Future<void> _requestRoot() async {
+    setState(() => _isLoadingRoot = true);
+    final granted = await _rootService.requestRootAccess();
+    await _loadRootStatus();
+    setState(() => _isLoadingRoot = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(granted ? '✅ تم منح صلاحيات الجذر للتطبيق' : '❌ لم يتم منح صلاحيات الجذر'),
+        backgroundColor: granted ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+// إضافة في دالة build ضمن الأقسام، مثلاً بعد قسم Encryption
+// أضف استدعاء _loadRootStatus في initState
+// نضيف داخل initState: _loadRootStatus();
+
+// نضيف في واجهة _buildToolsTab (أو نضيف تبويب جديد)
+// سنقوم بإضافة عنصر جديد في قائمة الأدوات
+
+  Future<void> _showRootDialog() async {
+    await _loadRootStatus();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إدارة صلاحيات الجذر', style: TextStyle(color: Color(0xFF00BCD4))),
+        backgroundColor: Colors.black,
+        content: Container(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.security, color: Color(0xFF00BCD4)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(_rootStatus['message'] ?? 'جاري التحقق...', style: const TextStyle(color: Colors.white))),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_rootStatus['available'] == true && _rootStatus['granted'] == false)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _requestRoot();
+                  },
+                  icon: const Icon(Icons.admin_panel_settings),
+                  label: const Text('منح صلاحيات الجذر'),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4), foregroundColor: Colors.black),
+                ),
+              if (_rootStatus['available'] == true && _rootStatus['granted'] == true)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await _testRoot();
+                  },
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('اختبار صلاحيات الجذر'),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4), foregroundColor: Colors.black),
+                ),
+              if (_rootStatus['available'] == false)
+                const Text('جهازك غير مجذّر. بعض الميزات المتقدمة لن تعمل.', style: TextStyle(color: Colors.orange)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق', style: TextStyle(color: Color(0xFF00BCD4)))),
+        ],
+      ),
+    );
+  }
