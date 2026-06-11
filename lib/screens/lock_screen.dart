@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/services/biometric_service.dart';
 import 'desktop_home.dart';
 
 class LockScreen extends StatefulWidget {
@@ -20,6 +22,9 @@ class _LockScreenState extends State<LockScreen> {
   void initState() {
     super.initState();
     _updateDateTime();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BiometricService>().init();
+    });
   }
 
   void _updateDateTime() {
@@ -66,11 +71,36 @@ class _LockScreenState extends State<LockScreen> {
     }
   }
 
+  Future<void> _authenticateWithBiometrics() async {
+    final service = context.read<BiometricService>();
+    if (!service.isBiometricAvailable) return;
+
+    setState(() => _isLoading = true);
+    final success = await service.authenticate();
+    setState(() => _isLoading = false);
+
+    if (success) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ZionDesktop()),
+        );
+      }
+    } else {
+      setState(() => _errorMessage = "Biometric authentication failed");
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _errorMessage = "");
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenHeight < 600;
+    final biometricService = context.watch<BiometricService>();
+    final showBiometric = biometricService.isBiometricAvailable;
 
     return Scaffold(
       body: Container(
@@ -107,7 +137,7 @@ class _LockScreenState extends State<LockScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Logo - حجم متناسب
+                          // Logo
                           Container(
                             width: screenWidth * 0.18,
                             height: screenWidth * 0.18,
@@ -135,7 +165,6 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.03),
-                          // Title
                           Text(
                             "ZION OS 2027",
                             style: TextStyle(
@@ -146,7 +175,6 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
-                          // Date
                           Text(
                             _currentDate,
                             style: TextStyle(
@@ -156,7 +184,6 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.05),
-                          // Time
                           Text(
                             _currentTime,
                             style: TextStyle(
@@ -167,7 +194,7 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.06),
-                          
+
                           // PIN Input
                           Container(
                             width: screenWidth * 0.6,
@@ -207,8 +234,8 @@ class _LockScreenState extends State<LockScreen> {
                               ),
                             ),
                           SizedBox(height: screenHeight * 0.04),
-                          
-                          // Number Pad - شبكة متجاوبة
+
+                          // Number Pad
                           Container(
                             width: screenWidth * 0.7,
                             constraints: const BoxConstraints(maxWidth: 320),
@@ -235,26 +262,42 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
-                          
-                          // Fingerprint hint
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.fingerprint,
-                                color: const Color(0xFF00BCD4).withOpacity(0.5),
-                                size: screenWidth * 0.05,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Touch ID / Face ID",
-                                style: TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: screenWidth * 0.025,
+
+                          // Biometric Button
+                          if (showBiometric)
+                            GestureDetector(
+                              onTap: _authenticateWithBiometrics,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF00BCD4).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      biometricService.hasFingerprint
+                                          ? Icons.fingerprint
+                                          : (biometricService.hasFace
+                                              ? Icons.face
+                                              : Icons.lock_open),
+                                      color: const Color(0xFF00BCD4),
+                                      size: screenWidth * 0.05,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Unlock with ${biometricService.biometricType}',
+                                      style: TextStyle(
+                                        color: const Color(0xFF00BCD4),
+                                        fontSize: screenWidth * 0.03,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
                         ],
                       ),
                     ),
