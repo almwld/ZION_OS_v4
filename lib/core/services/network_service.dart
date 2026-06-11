@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
@@ -17,7 +18,6 @@ class NetworkService extends ChangeNotifier {
   String _ipAddress = '';
   String _gateway = '';
   String _subnetMask = '';
-  String _dns = '';
   
   List<Map<String, dynamic>> _networkInterfaces = [];
   List<Map<String, dynamic>> _activeConnections = [];
@@ -50,8 +50,9 @@ class NetworkService extends ChangeNotifier {
       _ipAddress = await _networkInfo.getWifiIP() ?? 'Unknown';
       _gateway = await _networkInfo.getWifiGatewayIP() ?? 'Unknown';
       _subnetMask = await _networkInfo.getWifiSubmask() ?? 'Unknown';
-      _dns = await _networkInfo.getWifiDNS() ?? 'Unknown';
-    } catch (_) {}
+    } catch (e) {
+      print('Network info error: $e');
+    }
     notifyListeners();
   }
   
@@ -129,7 +130,6 @@ class NetworkService extends ChangeNotifier {
   String get ipAddress => _ipAddress;
   String get gateway => _gateway;
   String get subnetMask => _subnetMask;
-  String get dns => _dns;
   List<Map<String, dynamic>> get activeConnections => _activeConnections;
   List<Map<String, dynamic>> get networkInterfaces => _networkInterfaces;
   
@@ -159,6 +159,7 @@ class NetworkService extends ChangeNotifier {
     }
   }
   
+  @override
   void dispose() {
     _scanTimer?.cancel();
     super.dispose();
