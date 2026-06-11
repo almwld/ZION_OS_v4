@@ -8,6 +8,8 @@ import 'apps/stealth_mode.dart';
 import 'apps/password_cracker.dart';
 import 'apps/ddos_attack.dart';
 import 'apps/forensics.dart';
+import 'apps/database_hacking.dart';
+import 'apps/cloud_attacks.dart';
 
 class DesktopHome extends StatefulWidget {
   const DesktopHome({super.key});
@@ -28,15 +30,25 @@ class _DesktopHomeState extends State<DesktopHome> {
   ];
 
   final List<Map<String, dynamic>> _apps = [
+    // Tools
     {"name": "Terminal", "icon": Icons.terminal, "category": "Tools", "screen": const TerminalApp()},
-    {"name": "Network Scanner", "icon": Icons.network_wifi, "category": "Analysis", "screen": const NetworkScannerApp()},
+    {"name": "Crypto Tool", "icon": Icons.lock, "category": "Tools", "screen": const CryptoToolApp()},
+    
+    // Attack
     {"name": "WiFi Scanner", "icon": Icons.wifi, "category": "Attack", "screen": const WiFiScannerApp()},
     {"name": "Exploit DB", "icon": Icons.bug_report, "category": "Attack", "screen": const ExploitDBApp()},
-    {"name": "Crypto Tool", "icon": Icons.lock, "category": "Defense", "screen": const CryptoToolApp()},
-    {"name": "Stealth Mode", "icon": Icons.visibility_off, "category": "Defense", "screen": const StealthModeApp()},
     {"name": "Password Cracker", "icon": Icons.vpn_key, "category": "Attack", "screen": const PasswordCrackerApp()},
     {"name": "DDoS Attack", "icon": Icons.speed, "category": "Attack", "screen": const DDoSAttackApp()},
+    {"name": "Database Hacking", "icon": Icons.storage, "category": "Attack", "screen": const DatabaseHackingApp()},
+    {"name": "Cloud Attacks", "icon": Icons.cloud, "category": "Attack", "screen": const CloudAttacksApp()},
+    
+    // Analysis
+    {"name": "Network Scanner", "icon": Icons.network_wifi, "category": "Analysis", "screen": const NetworkScannerApp()},
     {"name": "Forensics", "icon": Icons.search, "category": "Analysis", "screen": const ForensicsApp()},
+    
+    // Defense
+    {"name": "Stealth Mode", "icon": Icons.visibility_off, "category": "Defense", "screen": const StealthModeApp()},
+    
     {"name": "Settings", "icon": Icons.settings, "category": "Tools", "screen": null},
   ];
 
