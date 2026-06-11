@@ -48,6 +48,7 @@ import 'apps/password_manager.dart';
 import 'apps/vpn_manager.dart';
 import 'apps/firewall.dart';
 import 'apps/device_admin.dart';
+import 'apps/notes_backup.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -124,6 +125,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "VPN", "icon": Icons.vpn_key, "category": "TOOLS", "screen": const VPNManagerApp()},
     {"name": "FIREWALL", "icon": Icons.firewall, "category": "TOOLS", "screen": const FirewallApp()},
     {"name": "DEV ADMIN", "icon": Icons.admin_panel_settings, "category": "TOOLS", "screen": const DeviceAdminApp()},
+    {"name": "NOTE BACKUP", "icon": Icons.backup, "category": "TOOLS", "screen": const NotesBackupApp()},
   ];
 
   @override
