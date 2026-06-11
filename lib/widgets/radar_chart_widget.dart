@@ -28,15 +28,6 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
   void initState() {
     super.initState();
     _updateStats();
-    // تحديث كل 3 ثواني
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 3));
-      if (mounted) {
-        _updateStats();
-        return true;
-      }
-      return false;
-    });
   }
 
   void _updateStats() {
@@ -54,7 +45,6 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
   }
 
   double _getCPUUsage() {
-    // محاكاة استخدام CPU حقيقي
     try {
       final result = Process.runSync('top', ['-bn1'], runInShell: true);
       final output = result.stdout.toString();
@@ -113,7 +103,6 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
   }
 
   double _getNetworkSpeed() {
-    // محاكاة سرعة الشبكة
     return (_random.nextDouble() * 0.8 + 0.1).clamp(0.0, 1.0);
   }
 
@@ -124,22 +113,6 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
       return (temp / 100).clamp(0.0, 1.0);
     } catch (_) {}
     return (_random.nextDouble() * 0.5 + 0.2).clamp(0.0, 1.0);
-  }
-
-  String _getStatusText(double value, String title) {
-    if (value > 0.8) return '⚠️ مرتفع';
-    if (value > 0.6) return '🟡 متوسط';
-    return '✅ جيد';
-  }
-
-  String _getValueText(double value, String title) {
-    if (title == 'CPU') return '${(value * 100).toStringAsFixed(1)}%';
-    if (title == 'RAM') return '${(value * 100).toStringAsFixed(1)}%';
-    if (title == 'Battery') return '${(value * 100).toStringAsFixed(1)}%';
-    if (title == 'Storage') return '${(value * 100).toStringAsFixed(1)}%';
-    if (title == 'Network') return '${(value * 100).toStringAsFixed(1)} Mbps';
-    if (title == 'Temp') return '${(value * 100).toStringAsFixed(1)}°C';
-    return '${(value * 100).toStringAsFixed(1)}%';
   }
 
   @override
@@ -166,12 +139,6 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
         color: Colors.black.withOpacity(0.95),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: const Color(0xFF00FF41).withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00FF41).withOpacity(0.1),
-            blurRadius: 10,
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -181,11 +148,7 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
               SizedBox(width: 8),
               Text(
                 'تحليل النظام - Radar Chart',
-                style: TextStyle(
-                  color: Color(0xFF00FF41),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Color(0xFF00FF41), fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -209,16 +172,8 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
                   return RadarChartTitle(
                     text: _titles[index],
                     angle: angle,
-                    style: const TextStyle(
-                      color: Color(0xFF00FF41),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
                   );
                 },
-                ticks: const [0.25, 0.5, 0.75, 1.0],
-                tickBorderData: const BorderSide(color: Color(0xFF00FF41), width: 0.5),
-                tickTextStyle: const TextStyle(color: Color(0xFF00FF41), fontSize: 8),
               ),
             ),
           ),
@@ -235,26 +190,14 @@ class _RadarChartWidgetState extends State<RadarChartWidget> {
                 for (final title in _titles)
                   Column(
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(color: Color(0xFF00FF41), fontSize: 10),
-                      ),
+                      Text(title, style: const TextStyle(color: Color(0xFF00FF41), fontSize: 10)),
                       const SizedBox(height: 4),
                       Text(
-                        _getValueText(_systemStats[title] ?? 0, title),
+                        '${((_systemStats[title] ?? 0) * 100).toStringAsFixed(1)}%',
                         style: TextStyle(
-                          color: _systemStats[title]! > 0.8 ? Colors.red : Colors.white,
+                          color: (_systemStats[title] ?? 0) > 0.8 ? Colors.red : Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _getStatusText(_systemStats[title] ?? 0, title),
-                        style: TextStyle(
-                          color: _systemStats[title]! > 0.8 
-                              ? Colors.red 
-                              : (_systemStats[title]! > 0.6 ? Colors.orange : Colors.green),
-                          fontSize: 8,
                         ),
                       ),
                     ],
