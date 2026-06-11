@@ -66,3 +66,5 @@ flutter_launcher_icons:
   min_sdk_android: 21
 
   image_picker: ^1.0.4
+
+  video_player: ^2.8.1
