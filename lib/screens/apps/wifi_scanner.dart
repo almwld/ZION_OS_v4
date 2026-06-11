@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class WiFiScannerApp extends StatefulWidget {
   const WiFiScannerApp({super.key});
@@ -13,11 +14,27 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
   bool _isScanning = false;
   String _errorMessage = '';
   String _currentWiFi = '';
+  bool _hasPermission = false;
 
   @override
   void initState() {
     super.initState();
+    _checkPermissions();
     _getCurrentWiFi();
+  }
+
+  Future<void> _checkPermissions() async {
+    final status = await Permission.location.status;
+    if (status.isDenied) {
+      await Permission.location.request();
+    }
+    final newStatus = await Permission.location.status;
+    setState(() {
+      _hasPermission = newStatus.isGranted;
+    });
+    if (_hasPermission) {
+      _scanWiFi();
+    }
   }
 
   Future<void> _getCurrentWiFi() async {
@@ -34,6 +51,13 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
   }
 
   Future<void> _scanWiFi() async {
+    if (!_hasPermission) {
+      setState(() {
+        _errorMessage = 'Location permission required to scan WiFi networks';
+      });
+      return;
+    }
+
     setState(() {
       _isScanning = true;
       _networks.clear();
@@ -41,11 +65,15 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
     });
 
     try {
-      // Using dumpsys wifi (Android)
+      // Force WiFi scan
+      await Process.run('cmd', ['wifi', 'force-scan'], runInShell: true);
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Get scan results
       final result = await Process.run('dumpsys', ['wifi'], runInShell: true);
       final output = result.stdout.toString();
       
-      // Parse WiFi networks from dumpsys
+      // Parse WiFi networks
       final regex = RegExp(r'SSID: "([^"]+)".*?BSSID: ([0-9a-f:]+).*?RSSI: (-?\d+)', caseSensitive: false);
       final matches = regex.allMatches(output);
       
@@ -54,7 +82,7 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
         final ssid = match.group(1);
         final bssid = match.group(2);
         final rssi = match.group(3);
-        if (ssid != null && ssid.isNotEmpty && ssid != 'unknown' && ssid != '<unknown ssid>') {
+        if (ssid != null && ssid.isNotEmpty && ssid != 'unknown' && ssid != '<unknown ssid>' && ssid != '0x') {
           networksList.add({
             'ssid': ssid,
             'bssid': bssid ?? 'Unknown',
@@ -64,17 +92,12 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
         }
       }
       
-      if (networksList.isEmpty) {
-        setState(() {
-          _errorMessage = 'No WiFi networks found. Make sure WiFi is enabled and location permission is granted.';
-          _isScanning = false;
-        });
-        return;
-      }
-      
       setState(() {
         _networks = networksList;
         _isScanning = false;
+        if (_networks.isEmpty) {
+          _errorMessage = 'No WiFi networks found. Make sure WiFi is enabled.';
+        }
       });
     } catch (e) {
       setState(() {
@@ -85,11 +108,11 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
   }
 
   String _getSecurityType(String output, String bssid) {
-    if (output.contains('WPA3') || output.contains('WPA3-Personal')) return 'WPA3';
-    if (output.contains('WPA2') || output.contains('WPA2-PSK')) return 'WPA2';
+    if (output.contains('WPA3')) return 'WPA3';
+    if (output.contains('WPA2')) return 'WPA2';
     if (output.contains('WPA')) return 'WPA';
     if (output.contains('WEP')) return 'WEP';
-    return 'Unknown';
+    return 'Open';
   }
 
   int _getSignalStrength(int rssi) {
@@ -101,7 +124,7 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
 
   IconData _getSignalIcon(int strength) {
     switch (strength) {
-      case 4: return Icons.signal_cellular_4_bar;
+      case 4: return Icons.signal_cellular_alt;
       case 3: return Icons.signal_cellular_alt;
       case 2: return Icons.signal_cellular_alt;
       default: return Icons.signal_cellular_alt;
@@ -129,6 +152,33 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
       ),
       body: Column(
         children: [
+          // Permission status
+          if (!_hasPermission)
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_off, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: const Text(
+                      'Location permission required to scan WiFi networks',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _checkPermissions,
+                    child: const Text('Grant', style: TextStyle(color: Color(0xFF00BCD4))),
+                  ),
+                ],
+              ),
+            ),
+          
           // Current WiFi Status
           Container(
             margin: const EdgeInsets.all(16),
@@ -209,7 +259,7 @@ class _WiFiScannerAppState extends State<WiFiScannerApp> {
                             SizedBox(height: 16),
                             Text('No networks found', style: TextStyle(color: Colors.white38)),
                             SizedBox(height: 8),
-                            Text('Make sure WiFi is enabled', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                            Text('Tap SCAN to search for networks', style: TextStyle(color: Colors.white24, fontSize: 12)),
                           ],
                         ),
                       )
