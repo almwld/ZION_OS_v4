@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'services/preferences_service.dart';
-import 'services/biometric_service.dart';
 import 'responsive_desktop.dart';
 
 class LockScreen extends StatefulWidget {
@@ -16,234 +14,68 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-  final BiometricService _biometricService = BiometricService();
   String _enteredPin = '';
   bool _isLoading = false;
   String _errorMessage = '';
-  bool _biometricAvailable = false;
+  DateTime _now = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _checkAndSetDefaultPin();
-    _checkBiometricAvailability();
+    // تحديث الساعة كل ثانية
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) setState(() => _now = DateTime.now());
+      return true;
+    });
   }
 
   Future<void> _checkAndSetDefaultPin() async {
-    String? savedPin = await _secureStorage.read(key: 'user_pin');
-    if (savedPin == null) {
-      await _secureStorage.write(key: 'user_pin', value: '1234');
-    }
-  }
-
-  Future<void> _checkBiometricAvailability() async {
-    final prefs = Provider.of<PreferencesService>(context, listen: false);
-    if (prefs.useBiometric) {
-      _biometricAvailable = await _biometricService.isBiometricAvailable();
-      if (_biometricAvailable && mounted) {
-        _authenticateWithBiometrics();
-      }
-    }
-  }
-
-  Future<void> _authenticateWithBiometrics() async {
-    final authenticated = await _biometricService.authenticateWithBiometrics(
-      reason: 'الرجاء استخدام البصمة لفتح Zion OS',
-    );
-    if (authenticated && mounted) {
-      _unlockAndNavigate();
-    }
+    final saved = await _secureStorage.read(key: 'user_pin');
+    if (saved == null) await _secureStorage.write(key: 'user_pin', value: '1234');
   }
 
   Future<void> _verifyPin() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-
+    setState(() { _isLoading = true; _errorMessage = ''; });
     await Future.delayed(const Duration(milliseconds: 500));
-    
-    String? savedPin = await _secureStorage.read(key: 'user_pin');
-    
+    final savedPin = await _secureStorage.read(key: 'user_pin');
     if (_enteredPin == savedPin) {
-      _unlockAndNavigate();
+      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ResponsiveDesktop()));
     } else {
-      setState(() {
-        _errorMessage = 'pin_incorrect'.tr();
-        _enteredPin = '';
-        _isLoading = false;
-      });
+      setState(() { _errorMessage = 'lock_screen.incorrect_pin'.tr(); _enteredPin = ''; _isLoading = false; });
     }
   }
 
-  void _unlockAndNavigate() {
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ResponsiveDesktop()),
-      );
+  void _addDigit(String d) {
+    if (_enteredPin.length < 4) {
+      setState(() => _enteredPin += d);
+      if (_enteredPin.length == 4) _verifyPin();
     }
   }
 
-  void _addDigit(String digit) {
-    final prefs = Provider.of<PreferencesService>(context, listen: false);
-    if (_enteredPin.length < prefs.pinLength) {
-      setState(() {
-        _enteredPin += digit;
-      });
-      if (_enteredPin.length == prefs.pinLength) {
-        _verifyPin();
-      }
-    }
-  }
-
-  void _deleteDigit() {
-    if (_enteredPin.isNotEmpty) {
-      setState(() {
-        _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1);
-      });
-    }
-  }
+  void _deleteDigit() => setState(() { if (_enteredPin.isNotEmpty) _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1); });
 
   @override
   Widget build(BuildContext context) {
     final prefs = Provider.of<PreferencesService>(context);
-    
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              prefs.isDarkMode ? Colors.cyan.shade900 : Colors.cyan.shade100,
-              prefs.isDarkMode ? Colors.black : Colors.white,
-            ],
-          ),
-        ),
+        decoration: BoxDecoration(gradient: RadialGradient(colors: [prefs.isDarkMode ? Colors.cyan.shade900 : Colors.cyan.shade100, prefs.isDarkMode ? Colors.black : Colors.white])),
         child: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // شعار Z
-              TweenAnimationBuilder(
-                tween: Tween<double>(begin: 0.8, end: 1.0),
-                duration: const Duration(milliseconds: 500),
-                builder: (context, double scale, child) {
-                  return Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Colors.cyan, Colors.teal],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.cyan.withOpacity(0.5),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Z',
-                          style: TextStyle(
-                            fontSize: 60,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+              Container(width: 100, height: 100, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [Colors.cyan, Colors.teal]), boxShadow: [BoxShadow(color: Colors.cyan.withOpacity(0.5), blurRadius: 20)]), child: const Center(child: Text('Z', style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white)))),
               const SizedBox(height: 40),
-              
-              // الساعة
-              AnimatedBuilder(
-                animation: Stream.periodic(const Duration(seconds: 1)),
-                builder: (context, _) {
-                  return Text(
-                    DateFormat('HH:mm').format(DateTime.now()),
-                    style: TextStyle(
-                      fontSize: 48 * prefs.fontScale,
-                      fontWeight: FontWeight.bold,
-                      color: prefs.isDarkMode ? Colors.white : Colors.black,
-                    ),
-                  );
-                },
-              ),
+              Text(DateFormat('HH:mm').format(_now), style: TextStyle(fontSize: 48 * prefs.fontScale, fontWeight: FontWeight.bold, color: prefs.isDarkMode ? Colors.white : Colors.black)),
               const SizedBox(height: 10),
-              
-              // التاريخ
-              Text(
-                DateFormat('EEEE, d MMMM y').format(DateTime.now()),
-                style: TextStyle(
-                  fontSize: 16 * prefs.fontScale,
-                  color: prefs.isDarkMode ? Colors.white70 : Colors.black54,
-                ),
-              ),
+              Text(DateFormat('EEEE, d MMMM y').format(_now), style: TextStyle(fontSize: 16 * prefs.fontScale, color: prefs.isDarkMode ? Colors.white70 : Colors.black54)),
               const SizedBox(height: 50),
-              
-              // نقاط PIN
-              Consumer<PreferencesService>(
-                builder: (context, prefs, _) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      prefs.pinLength,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 20,
-                        height: 20,
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: index < _enteredPin.length
-                              ? (prefs.isDarkMode ? Colors.white : Colors.black)
-                              : Colors.transparent,
-                          border: Border.all(
-                            color: prefs.isDarkMode ? Colors.white54 : Colors.black54,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              
-              if (_errorMessage.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(
-                  _errorMessage,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                ),
-              ],
-              
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(4, (i) => Container(width: 20, height: 20, margin: const EdgeInsets.symmetric(horizontal: 10), decoration: BoxDecoration(shape: BoxShape.circle, color: i < _enteredPin.length ? (prefs.isDarkMode ? Colors.white : Colors.black) : Colors.transparent, border: Border.all(color: prefs.isDarkMode ? Colors.white54 : Colors.black54, width: 2))))),
+              if (_errorMessage.isNotEmpty) ... [ const SizedBox(height: 20), Text(_errorMessage, style: const TextStyle(color: Colors.red)) ],
               const SizedBox(height: 40),
-              
-              // لوحة الأرقام
               _buildNumberPad(prefs),
-              
-              // زر البصمة
-              if (_biometricAvailable && prefs.useBiometric)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: IconButton(
-                    onPressed: _authenticateWithBiometrics,
-                    icon: Icon(
-                      Icons.fingerprint,
-                      size: 40,
-                      color: prefs.isDarkMode ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -252,90 +84,15 @@ class _LockScreenState extends State<LockScreen> {
   }
 
   Widget _buildNumberPad(PreferencesService prefs) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumberButton('1', prefs),
-            _buildNumberButton('2', prefs),
-            _buildNumberButton('3', prefs),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumberButton('4', prefs),
-            _buildNumberButton('5', prefs),
-            _buildNumberButton('6', prefs),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumberButton('7', prefs),
-            _buildNumberButton('8', prefs),
-            _buildNumberButton('9', prefs),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(width: 70),
-            _buildNumberButton('0', prefs),
-            _buildDeleteButton(prefs),
-          ],
-        ),
-      ],
-    );
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: ['1','2','3'].map((d) => _buildNumberButton(d, prefs)).toList()),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: ['4','5','6'].map((d) => _buildNumberButton(d, prefs)).toList()),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: ['7','8','9'].map((d) => _buildNumberButton(d, prefs)).toList()),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [const SizedBox(width: 70), _buildNumberButton('0', prefs), _buildDeleteButton(prefs)]),
+    ]);
   }
 
-  Widget _buildNumberButton(String digit, PreferencesService prefs) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: () => _addDigit(digit),
-        child: Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: prefs.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
-          ),
-          child: Center(
-            child: Text(
-              digit,
-              style: TextStyle(
-                fontSize: 28 * prefs.fontScale,
-                fontWeight: FontWeight.bold,
-                color: prefs.isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildNumberButton(String digit, PreferencesService prefs) => Padding(padding: const EdgeInsets.all(8), child: InkWell(onTap: () => _addDigit(digit), child: Container(width: 70, height: 70, decoration: BoxDecoration(shape: BoxShape.circle, color: prefs.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05)), child: Center(child: Text(digit, style: TextStyle(fontSize: 28 * prefs.fontScale, fontWeight: FontWeight.bold, color: prefs.isDarkMode ? Colors.white : Colors.black))))));
 
-  Widget _buildDeleteButton(PreferencesService prefs) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: _deleteDigit,
-        child: Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: prefs.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
-          ),
-          child: Icon(
-            Icons.backspace,
-            size: 30,
-            color: prefs.isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildDeleteButton(PreferencesService prefs) => Padding(padding: const EdgeInsets.all(8), child: InkWell(onTap: _deleteDigit, child: Container(width: 70, height: 70, decoration: BoxDecoration(shape: BoxShape.circle, color: prefs.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05)), child: Icon(Icons.backspace, size: 30, color: prefs.isDarkMode ? Colors.white : Colors.black))));
 }
