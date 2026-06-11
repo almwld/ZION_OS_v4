@@ -14,8 +14,7 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
   int _selectedVideoIndex = 0;
   bool _isInitialized = false;
   bool _isPlaying = false;
-  
-  // Videos list (local assets or network)
+
   final List<Map<String, dynamic>> _videos = [
     {'name': 'Butterfly', 'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4', 'duration': '0:30', 'size': '2.5 MB'},
     {'name': 'Bee', 'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4', 'duration': '0:45', 'size': '3.2 MB'},
@@ -31,9 +30,7 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
   Future<void> _initVideoPlayer() async {
     _controller = VideoPlayerController.networkUrl(Uri.parse(_videos[_selectedVideoIndex]['url']));
     await _controller!.initialize();
-    setState(() {
-      _isInitialized = true;
-    });
+    setState(() => _isInitialized = true);
   }
 
   Future<void> _changeVideo(int index) async {
@@ -42,39 +39,18 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
       _isInitialized = false;
       _isPlaying = false;
     });
-    
     await _controller?.dispose();
     _controller = VideoPlayerController.networkUrl(Uri.parse(_videos[index]['url']));
     await _controller!.initialize();
-    setState(() {
-      _isInitialized = true;
-    });
+    setState(() => _isInitialized = true);
   }
 
-  void _play() {
-    setState(() {
-      _isPlaying = true;
-      _controller!.play();
-    });
-  }
-
-  void _pause() {
-    setState(() {
-      _isPlaying = false;
-      _controller!.pause();
-    });
-  }
-
-  void _replay() {
-    _controller!.seekTo(Duration.zero);
-    if (!_isPlaying) _play();
-  }
+  void _play() { setState(() { _isPlaying = true; _controller!.play(); }); }
+  void _pause() { setState(() { _isPlaying = false; _controller!.pause(); }); }
+  void _replay() { _controller!.seekTo(Duration.zero); if (!_isPlaying) _play(); }
 
   @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
+  void dispose() { _controller?.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -83,69 +59,34 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
       appBar: AppBar(
         title: const Text('Video Player', style: TextStyle(color: Color(0xFF00BCD4))),
         backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)), onPressed: () => Navigator.pop(context)),
       ),
       body: Column(
         children: [
-          // Video Player
           Container(
             height: 250,
             margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00BCD4).withOpacity(0.3),
-                  blurRadius: 20,
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: const Color(0xFF00BCD4).withOpacity(0.3), blurRadius: 20)]),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: _isInitialized
                   ? Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
-                        AspectRatio(
-                          aspectRatio: _controller!.value.aspectRatio,
-                          child: VideoPlayer(_controller!),
-                        ),
-                        // Video Controls Overlay
+                        AspectRatio(aspectRatio: _controller!.value.aspectRatio, child: VideoPlayer(_controller!)),
                         Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                            ),
-                          ),
+                          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.7), Colors.transparent])),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // Progress Bar
                               VideoProgressIndicator(_controller!, allowScrubbing: true),
                               const SizedBox(height: 8),
-                              // Play/Pause Buttons
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      _isPlaying ? Icons.pause : Icons.play_arrow,
-                                      color: Colors.white,
-                                      size: 32,
-                                    ),
-                                    onPressed: _isPlaying ? _pause : _play,
-                                  ),
+                                  IconButton(icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 32), onPressed: _isPlaying ? _pause : _play),
                                   const SizedBox(width: 20),
-                                  IconButton(
-                                    icon: const Icon(Icons.replay, color: Colors.white, size: 28),
-                                    onPressed: _replay,
-                                  ),
+                                  IconButton(icon: const Icon(Icons.replay, color: Colors.white, size: 28), onPressed: _replay),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -154,13 +95,9 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                         ),
                       ],
                     )
-                  : const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF00BCD4)),
-                    ),
+                  : const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4))),
             ),
           ),
-          
-          // Video Title and Info
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -169,67 +106,40 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        _videos[_selectedVideoIndex]['name'],
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                      Text(_videos[_selectedVideoIndex]['name'], style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(
-                        'Duration: ${_videos[_selectedVideoIndex]['duration']} • Size: ${_videos[_selectedVideoIndex]['size']}',
-                        style: const TextStyle(color: Colors.white54, fontSize: 11),
-                      ),
+                      Text('Duration: ${_videos[_selectedVideoIndex]['duration']} • Size: ${_videos[_selectedVideoIndex]['size']}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.share, color: Color(0xFF00BCD4)),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: _videos[_selectedVideoIndex]['url']));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('URL copied'), backgroundColor: Color(0xFF00BCD4)),
-                    );
-                  },
-                ),
+                IconButton(icon: const Icon(Icons.share, color: Color(0xFF00BCD4)), onPressed: () {
+                  Clipboard.setData(ClipboardData(text: _videos[_selectedVideoIndex]['url']));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('URL copied'), backgroundColor: Color(0xFF00BCD4)));
+                }),
               ],
             ),
           ),
-          
           const SizedBox(height: 16),
-          
-          // Videos List
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _videos.length,
-              itemBuilder: (context, index) {
-                final video = _videos[index];
-                final isSelected = _selectedVideoIndex == index;
+              itemBuilder: (ctx, i) {
+                final video = _videos[i];
+                final isSelected = _selectedVideoIndex == i;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: isSelected ? const Color(0xFF00BCD4).withOpacity(0.2) : Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFF00BCD4) : const Color(0xFF00BCD4).withOpacity(0.3),
-                    ),
+                    border: Border.all(color: isSelected ? const Color(0xFF00BCD4) : const Color(0xFF00BCD4).withOpacity(0.3)),
                   ),
                   child: ListTile(
-                    leading: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00BCD4).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.play_circle_filled, color: Color(0xFF00BCD4), size: 32),
-                    ),
+                    leading: Container(width: 50, height: 50, decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.2), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.play_circle_filled, color: Color(0xFF00BCD4), size: 32)),
                     title: Text(video['name'], style: const TextStyle(color: Colors.white)),
                     subtitle: Text('${video['duration']} • ${video['size']}', style: const TextStyle(color: Colors.white54)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.play_arrow, color: Color(0xFF00BCD4)),
-                      onPressed: () => _changeVideo(index),
-                    ),
+                    trailing: IconButton(icon: const Icon(Icons.play_arrow, color: Color(0xFF00BCD4)), onPressed: () => _changeVideo(i)),
                   ),
                 );
               },

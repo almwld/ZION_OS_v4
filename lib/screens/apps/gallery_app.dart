@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class GalleryApp extends StatefulWidget {
   const GalleryApp({super.key});
@@ -15,7 +15,6 @@ class _GalleryAppState extends State<GalleryApp> {
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   int _selectedCategory = 0;
-  
   final List<String> _categories = ['All', 'Camera', 'Screenshots', 'Downloads'];
 
   @override
@@ -26,8 +25,6 @@ class _GalleryAppState extends State<GalleryApp> {
 
   Future<void> _loadSavedPhotos() async {
     setState(() => _isLoading = true);
-    // Simulate loading saved photos (actually we would scan directories)
-    // For now, keep existing demo photos
     if (_photos.isEmpty) {
       _photos.addAll([
         {'name': 'IMG_20241201.jpg', 'size': '2.5 MB', 'date': '2024-12-01', 'path': '', 'type': 'image'},
@@ -94,7 +91,7 @@ class _GalleryAppState extends State<GalleryApp> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Photo', style: TextStyle(color: Color(0xFF00BCD4))),
-        content: const Text('Are you sure you want to delete this photo?', style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure?', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
@@ -102,9 +99,7 @@ class _GalleryAppState extends State<GalleryApp> {
             onPressed: () async {
               final photo = _photos[index];
               if (photo['path'] != null && photo['path'].isNotEmpty) {
-                try {
-                  await File(photo['path']).delete();
-                } catch (_) {}
+                try { await File(photo['path']).delete(); } catch (_) {}
               }
               setState(() => _photos.removeAt(index));
               Navigator.pop(context);
@@ -125,22 +120,13 @@ class _GalleryAppState extends State<GalleryApp> {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 height: 300,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00BCD4).withOpacity(0.1),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
+                decoration: BoxDecoration(color: const Color(0xFF00BCD4).withOpacity(0.1), borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))),
                 child: Center(
                   child: photo['path'].isNotEmpty
                       ? Image.file(File(photo['path']), fit: BoxFit.contain)
@@ -162,10 +148,7 @@ class _GalleryAppState extends State<GalleryApp> {
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.close),
                           label: const Text('Close'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00BCD4),
-                            foregroundColor: Colors.black,
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4), foregroundColor: Colors.black),
                         ),
                         const SizedBox(width: 10),
                         ElevatedButton.icon(
@@ -178,10 +161,7 @@ class _GalleryAppState extends State<GalleryApp> {
                           },
                           icon: const Icon(Icons.copy),
                           label: const Text('Copy Name'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[800],
-                            foregroundColor: Colors.white,
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800]),
                         ),
                       ],
                     ),
@@ -204,104 +184,38 @@ class _GalleryAppState extends State<GalleryApp> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredPhotos = _selectedCategory == 0
-        ? _photos
-        : _selectedCategory == 1
-            ? _photos.where((p) => p['type'] == 'camera').toList()
-            : _selectedCategory == 2
-                ? _photos.where((p) => p['type'] == 'screenshot').toList()
-                : _photos.where((p) => p['type'] == 'gallery').toList();
-
+    final filteredPhotos = _selectedCategory == 0 ? _photos : _photos.where((p) => p['type'] == _categories[_selectedCategory].toLowerCase()).toList();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text('Gallery', style: TextStyle(color: Color(0xFF00BCD4))),
         backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)), onPressed: () => Navigator.pop(context)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.camera_alt, color: Color(0xFF00BCD4)),
-            onPressed: _takePhoto,
-            tooltip: 'Take photo',
-          ),
-          IconButton(
-            icon: const Icon(Icons.photo_library, color: Color(0xFF00BCD4)),
-            onPressed: _pickImage,
-            tooltip: 'Pick from gallery',
-          ),
+          IconButton(icon: const Icon(Icons.camera_alt, color: Color(0xFF00BCD4)), onPressed: _takePhoto),
+          IconButton(icon: const Icon(Icons.photo_library, color: Color(0xFF00BCD4)), onPressed: _pickImage),
         ],
-        bottom: TabBar(
-          onTap: (index) => setState(() => _selectedCategory = index),
-          labelColor: const Color(0xFF00BCD4),
-          unselectedLabelColor: Colors.white54,
-          indicatorColor: const Color(0xFF00BCD4),
-          tabs: _categories.map((cat) => Tab(text: cat)).toList(),
-        ),
+        bottom: TabBar(onTap: (i) => setState(() => _selectedCategory = i), labelColor: const Color(0xFF00BCD4), unselectedLabelColor: Colors.white54, indicatorColor: const Color(0xFF00BCD4), tabs: _categories.map((cat) => Tab(text: cat)).toList()),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
           : filteredPhotos.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.photo_library, size: 64, color: Colors.white24),
-                      SizedBox(height: 16),
-                      Text('No photos yet', style: TextStyle(color: Colors.white38)),
-                      SizedBox(height: 8),
-                      Text('Tap camera icon to take a photo', style: TextStyle(color: Colors.white24, fontSize: 12)),
-                    ],
-                  ),
-                )
+              ? const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.photo_library, size: 64, color: Colors.white24), SizedBox(height: 16), Text('No photos', style: TextStyle(color: Colors.white38))]))
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 1, crossAxisSpacing: 8, mainAxisSpacing: 8),
                   itemCount: filteredPhotos.length,
-                  itemBuilder: (context, index) {
-                    final photo = filteredPhotos[index];
+                  itemBuilder: (ctx, i) {
+                    final photo = filteredPhotos[i];
                     return GestureDetector(
                       onTap: () => _viewPhoto(photo),
                       onLongPress: () => _deletePhoto(_photos.indexOf(photo)),
                       child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00BCD4), Color(0xFF006064)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF00BCD4), Color(0xFF006064)]), borderRadius: BorderRadius.circular(12)),
                         child: Stack(
                           children: [
-                            Center(
-                              child: photo['path'].isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.file(File(photo['path']), fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-                                    )
-                                  : const Icon(Icons.image, color: Colors.white, size: 40),
-                            ),
-                            Positioned(
-                              bottom: 4,
-                              right: 4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  photo['name'].split('.').last.toUpperCase(),
-                                  style: const TextStyle(color: Colors.white70, fontSize: 8),
-                                ),
-                              ),
-                            ),
+                            Center(child: photo['path'].isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(File(photo['path']), fit: BoxFit.cover, width: double.infinity, height: double.infinity)) : const Icon(Icons.image, color: Colors.white, size: 40)),
+                            Positioned(bottom: 4, right: 4, child: Container(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(4)), child: Text(photo['name'].split('.').last.toUpperCase(), style: const TextStyle(color: Colors.white70, fontSize: 8)))),
                           ],
                         ),
                       ),

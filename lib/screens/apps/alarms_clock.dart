@@ -33,7 +33,9 @@ class _AlarmsClockAppState extends State<AlarmsClockApp> with SingleTickerProvid
 
   @override
   void initState() {
+    _updateDateTime();
     super.initState();
+    _updateDateTime();
     _tabController = TabController(length: 3, vsync: this);
     _updateDateTime();
     _loadAlarms();
@@ -525,3 +527,7 @@ List<Map<String, dynamic>> jsonDecode(String data) {
 }
 // تأكد من وجود المتغير seconds داخل دالة _buildTimerTab
 // أو قم بتعديل استدعاء _buildTimerTab
+
+  void _updateDateTime() {
+    // Already handled by timer in initState
+  }
