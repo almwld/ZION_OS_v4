@@ -176,3 +176,30 @@ class IconMapper {
     }
   }
 }
+
+  // أيقونات المراكز (Hubs) المضافة حديثاً
+  static String? _getHubIconPath(String appName) {
+    switch (appName) {
+      case "PERF HUB":
+      case "PERFORMANCE HUB":
+        return "assets/icons/svg_colors/performance_hub.svg";
+      case "DATA HUB":
+        return "assets/icons/svg_colors/data_hub.svg";
+      case "SECURITY HUB":
+      case "SEC HUB":
+        return "assets/icons/svg_colors/security_hub.svg";
+      case "TOOLS HUB":
+        return "assets/icons/svg_colors/tools_hub.svg";
+      case "NET HUB":
+      case "NETWORK HUB":
+        return "assets/icons/svg_colors/network_hub.svg";
+      case "PRIV HUB":
+      case "PRIVACY HUB":
+        return "assets/icons/svg_colors/privacy_hub.svg";
+      case "AUTO HUB":
+      case "AUTOMATION HUB":
+        return "assets/icons/svg_colors/automation_hub.svg";
+      default:
+        return null;
+    }
+  }
