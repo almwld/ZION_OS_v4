@@ -30,6 +30,7 @@ import 'apps/qr_scanner_simple.dart';
 import 'apps/calendar_simple.dart';
 import 'apps/gallery_simple.dart';
 import 'apps/documents_simple.dart';
+import 'apps/system_monitor.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -88,6 +89,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "CALENDAR", "icon": Icons.calendar_today, "category": "TOOLS", "screen": const CalendarApp()},
     {"name": "GALLERY", "icon": Icons.photo_library, "category": "TOOLS", "screen": const GalleryApp()},
     {"name": "DOCUMENTS", "icon": Icons.description, "category": "TOOLS", "screen": const DocumentsApp()},
+    {"name": "MONITOR", "icon": Icons.assessment, "category": "TOOLS", "screen": const SystemMonitorApp()},
   ];
 
   @override
