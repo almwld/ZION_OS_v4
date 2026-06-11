@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'apps/terminal_app.dart';
+import 'apps/network_scanner.dart';
 
 class DesktopHome extends StatefulWidget {
   const DesktopHome({super.key});
@@ -20,24 +22,15 @@ class _DesktopHomeState extends State<DesktopHome> {
   ];
 
   final List<Map<String, dynamic>> _apps = [
-    {"name": "Terminal", "icon": FontAwesomeIcons.terminal, "category": "Tools"},
-    {"name": "WiFi Suite", "icon": FontAwesomeIcons.wifi, "category": "Attack"},
-    {"name": "Network", "icon": FontAwesomeIcons.networkWired, "category": "Analysis"},
-    {"name": "Exploit", "icon": FontAwesomeIcons.bug, "category": "Attack"},
-    {"name": "Crypto", "icon": FontAwesomeIcons.lock, "category": "Defense"},
-    {"name": "Stealth", "icon": FontAwesomeIcons.eyeSlash, "category": "Defense"},
-    {"name": "DDoS", "icon": FontAwesomeIcons.bomb, "category": "Attack"},
-    {"name": "Botnet", "icon": FontAwesomeIcons.networkWired, "category": "Attack"},
-    {"name": "Forensics", "icon": FontAwesomeIcons.magnifyingGlass, "category": "Analysis"},
-    {"name": "Database", "icon": FontAwesomeIcons.database, "category": "Attack"},
-    {"name": "Cloud", "icon": FontAwesomeIcons.cloud, "category": "Attack"},
-    {"name": "Wireless", "icon": FontAwesomeIcons.signal, "category": "Attack"},
-    {"name": "Bypass", "icon": FontAwesomeIcons.shield, "category": "Defense"},
-    {"name": "Social", "icon": FontAwesomeIcons.peopleGroup, "category": "Attack"},
-    {"name": "Spying", "icon": FontAwesomeIcons.camera, "category": "Attack"},
-    {"name": "Cracker", "icon": FontAwesomeIcons.key, "category": "Attack"},
-    {"name": "Settings", "icon": FontAwesomeIcons.gear, "category": "Tools"},
-    {"name": "Reports", "icon": FontAwesomeIcons.chartSimple, "category": "Analysis"},
+    {"name": "Terminal", "icon": FontAwesomeIcons.terminal, "category": "Tools", "screen": TerminalApp()},
+    {"name": "Network Scanner", "icon": FontAwesomeIcons.networkWired, "category": "Analysis", "screen": NetworkScannerApp()},
+    {"name": "WiFi Suite", "icon": FontAwesomeIcons.wifi, "category": "Attack", "screen": null},
+    {"name": "Exploit DB", "icon": FontAwesomeIcons.bug, "category": "Attack", "screen": null},
+    {"name": "Crypto Tool", "icon": FontAwesomeIcons.lock, "category": "Defense", "screen": null},
+    {"name": "Stealth", "icon": FontAwesomeIcons.eyeSlash, "category": "Defense", "screen": null},
+    {"name": "DDoS", "icon": FontAwesomeIcons.bomb, "category": "Attack", "screen": null},
+    {"name": "Forensics", "icon": FontAwesomeIcons.magnifyingGlass, "category": "Analysis", "screen": null},
+    {"name": "Settings", "icon": FontAwesomeIcons.gear, "category": "Tools", "screen": null},
   ];
 
   @override
@@ -56,6 +49,19 @@ class _DesktopHomeState extends State<DesktopHome> {
         _updateTime();
       }
     });
+  }
+
+  void _openApp(Map<String, dynamic> app) {
+    if (app['screen'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => app['screen']),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${app['name']} قيد التطوير...'), backgroundColor: const Color(0xFF00FF41)),
+      );
+    }
   }
 
   @override
@@ -129,7 +135,7 @@ class _DesktopHomeState extends State<DesktopHome> {
               itemBuilder: (context, index) {
                 final app = filteredApps[index];
                 return GestureDetector(
-                  onTap: () {},
+                  onTap: () => _openApp(app),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
