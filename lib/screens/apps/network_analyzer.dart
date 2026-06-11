@@ -402,7 +402,7 @@ class _NetworkAnalyzerAppState extends State<NetworkAnalyzerApp> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.ping, color: Color(0xFF00BCD4)),
+                      Icon(Icons.speed, color: Color(0xFF00BCD4)),
                       SizedBox(width: 8),
                       Text('Ping Tool', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
                     ],

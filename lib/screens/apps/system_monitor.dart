@@ -211,7 +211,7 @@ class _SystemMonitorAppState extends State<SystemMonitorApp> {
                           value: _cpuUsage / 100,
                           backgroundColor: Colors.white24,
                           color: _getStatusColor(_cpuUsage),
-                          height: 12,
+                          
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -259,7 +259,7 @@ class _SystemMonitorAppState extends State<SystemMonitorApp> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.ram, color: Color(0xFF00BCD4)),
+                      Icon(Icons.memory, color: Color(0xFF00BCD4)),
                       SizedBox(width: 8),
                       Text('RAM Usage', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
                     ],
@@ -272,7 +272,7 @@ class _SystemMonitorAppState extends State<SystemMonitorApp> {
                           value: _ramUsage / 100,
                           backgroundColor: Colors.white24,
                           color: _getStatusColor(_ramUsage),
-                          height: 12,
+                          
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -342,7 +342,7 @@ class _SystemMonitorAppState extends State<SystemMonitorApp> {
                           value: _diskUsage / 100,
                           backgroundColor: Colors.white24,
                           color: _getStatusColor(_diskUsage),
-                          height: 12,
+                          
                         ),
                       ),
                       const SizedBox(width: 16),

@@ -273,7 +273,7 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
                       value: performanceScore / 100,
                       backgroundColor: Colors.white24,
                       color: Colors.white,
-                      height: 6,
+                      
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -297,7 +297,7 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
                   children: [
                     _buildStatItem('Processes', _processes.length.toString(), Icons.code),
                     _buildStatItem('CPU', '${_totalCpu.toStringAsFixed(1)}%', Icons.memory),
-                    _buildStatItem('RAM', '${_totalMem.toStringAsFixed(1)}%', Icons.ram),
+                    _buildStatItem('RAM', '${_totalMem.toStringAsFixed(1)}%', Icons.memory),
                     _buildStatItem('Critical', '$_criticalProcesses', Icons.warning),
                   ],
                 ),
