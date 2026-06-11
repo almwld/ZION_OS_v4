@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/app_model.dart';
+import '../widgets/radar_chart_widget.dart';
 import 'apps/terminal_app.dart';
 import 'apps/network_scanner.dart';
 import 'apps/wifi_scanner.dart';
@@ -104,6 +107,11 @@ class _DesktopHomeState extends State<DesktopHome> {
                 ),
               ],
             ),
+          ),
+          // Radar Chart - تحليل النظام
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: RadarChartWidget(),
           ),
           Container(
             height: 50,
