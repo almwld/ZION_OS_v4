@@ -45,6 +45,9 @@ import 'apps/security_hub.dart';
 import 'apps/tools_hub.dart';
 import 'apps/performance_hub.dart';
 import 'apps/data_hub.dart';
+import 'apps/network_hub.dart';
+import 'apps/privacy_hub.dart';
+import 'apps/automation_hub.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -75,6 +78,9 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "TOOLS HUB", "icon": Icons.build, "category": "TOOLS", "screen": const ToolsHubApp()},
     {"name": "PERF HUB", "icon": Icons.speed, "category": "TOOLS", "screen": const PerformanceHubApp()},
     {"name": "DATA HUB", "icon": Icons.storage, "category": "TOOLS", "screen": const DataHubApp()},
+    {"name": "NET HUB", "icon": Icons.network_check, "category": "TOOLS", "screen": const NetworkHubApp()},
+    {"name": "PRIV HUB", "icon": Icons.privacy_tip, "category": "TOOLS", "screen": const PrivacyHubApp()},
+    {"name": "AUTO HUB", "icon": Icons.settings, "category": "TOOLS", "screen": const AutomationHubApp()},
     {"name": "NOTES", "icon": Icons.note, "category": "TOOLS", "screen": const NotesApp()},
     {"name": "WEATHER", "icon": Icons.wb_sunny, "category": "TOOLS", "screen": const WeatherApp()},
     {"name": "MAPS", "icon": Icons.map, "category": "TOOLS", "screen": const MapsApp()},

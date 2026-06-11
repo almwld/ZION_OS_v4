@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/services.dart';
 
 class NetworkHubApp extends StatefulWidget {
   const NetworkHubApp({super.key});
@@ -13,38 +12,31 @@ class NetworkHubApp extends StatefulWidget {
 
 class _NetworkHubAppState extends State<NetworkHubApp> {
   int _selectedTab = 0;
+  final List<String> _tabs = ['Monitor', 'Scanner', 'Tools', 'Stats'];
   
-  final List<Map<String, dynamic>> _tabs = [
-    {'name': 'Monitor', 'icon': Icons.analytics},
-    {'name': 'Scanner', 'icon': Icons.scanner},
-    {'name': 'Tools', 'icon': Icons.build},
-    {'name': 'Stats', 'icon': Icons.bar_chart},
-  ];
-  
-  List<FlSpot> _downloadSpots = [];
-  List<FlSpot> _uploadSpots = [];
-  Timer? _monitorTimer;
-  int _dataPoint = 0;
+  // Network Stats
   double _downloadSpeed = 0;
   double _uploadSpeed = 0;
   double _totalDownload = 0;
   double _totalUpload = 0;
   String _currentIP = '';
   String _currentSSID = '';
-  
   List<Map<String, String>> _wifiNetworks = [];
   List<Map<String, String>> _openPorts = [];
   bool _isScanning = false;
   String _scanTarget = '';
-  
   final TextEditingController _pingHost = TextEditingController(text: '8.8.8.8');
   String _pingResult = '';
   bool _isPinging = false;
+  
+  List<FlSpot> _downloadHistory = [];
+  int _dataPoint = 0;
+  Timer? _monitorTimer;
 
   @override
   void initState() {
     super.initState();
-    _initData();
+    _initHistory();
     _startMonitoring();
     _getNetworkInfo();
   }
@@ -55,10 +47,9 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
     super.dispose();
   }
 
-  void _initData() {
+  void _initHistory() {
     for (int i = 0; i < 20; i++) {
-      _downloadSpots.add(FlSpot(i.toDouble(), 0));
-      _uploadSpots.add(FlSpot(i.toDouble(), 0));
+      _downloadHistory.add(FlSpot(i.toDouble(), 0));
     }
   }
 
@@ -71,20 +62,16 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
   }
 
   void _updateNetworkStats() {
-    setState(() {
-      _downloadSpeed = 0.5 + (DateTime.now().second % 50) / 10;
-      _uploadSpeed = 0.2 + (DateTime.now().millisecond % 30) / 10;
-      _totalDownload += _downloadSpeed / 10;
-      _totalUpload += _uploadSpeed / 10;
-    });
+    _downloadSpeed = 0.5 + (DateTime.now().second % 50) / 10;
+    _uploadSpeed = 0.2 + (DateTime.now().millisecond % 30) / 10;
+    _totalDownload += _downloadSpeed / 10;
+    _totalUpload += _uploadSpeed / 10;
   }
 
   void _updateHistory() {
     _dataPoint++;
-    _downloadSpots.add(FlSpot(_dataPoint.toDouble(), _downloadSpeed));
-    _uploadSpots.add(FlSpot(_dataPoint.toDouble(), _uploadSpeed));
-    if (_downloadSpots.length > 20) _downloadSpots.removeAt(0);
-    if (_uploadSpots.length > 20) _uploadSpots.removeAt(0);
+    _downloadHistory.add(FlSpot(_dataPoint.toDouble(), _downloadSpeed));
+    if (_downloadHistory.length > 20) _downloadHistory.removeAt(0);
   }
 
   Future<void> _getNetworkInfo() async {
@@ -164,19 +151,24 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
     return '${speed.toStringAsFixed(1)} MB/s';
   }
 
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard'), backgroundColor: Color(0xFF00BCD4)));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(title: const Text('Network Hub', style: TextStyle(color: Color(0xFF00BCD4))), backgroundColor: Colors.black,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)), onPressed: () => Navigator.pop(context)),
-        bottom: TabBar(onTap: (i) => setState(() => _selectedTab = i), labelColor: const Color(0xFF00BCD4), unselectedLabelColor: Colors.white54,
-          indicatorColor: const Color(0xFF00BCD4), tabs: _tabs.map((tab) => Tab(icon: Icon(tab['icon']), text: tab['name'])).toList()),
+      appBar: AppBar(
+        title: const Text('Network Hub', style: TextStyle(color: Color(0xFF00BCD4))),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        bottom: TabBar(
+          onTap: (i) => setState(() => _selectedTab = i),
+          labelColor: const Color(0xFF00BCD4),
+          unselectedLabelColor: Colors.white54,
+          indicatorColor: const Color(0xFF00BCD4),
+          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+        ),
       ),
       body: IndexedStack(
         index: _selectedTab,
@@ -190,29 +182,61 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF00BCD4), Color(0xFF006064)]), borderRadius: BorderRadius.circular(20)),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF00BCD4), Color(0xFF006064)]),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Column(children: [const Icon(Icons.arrow_downward, color: Colors.green), const SizedBox(height: 8), Text(_formatSpeed(_downloadSpeed), style: const TextStyle(color: Colors.green, fontSize: 20, fontWeight: FontWeight.bold)), const Text('Download', style: TextStyle(color: Colors.white70))]),
-                Column(children: [const Icon(Icons.arrow_upward, color: Colors.orange), const SizedBox(height: 8), Text(_formatSpeed(_uploadSpeed), style: const TextStyle(color: Colors.orange, fontSize: 20, fontWeight: FontWeight.bold)), const Text('Upload', style: TextStyle(color: Colors.white70))]),
+                _buildSpeedItem('Download', _formatSpeed(_downloadSpeed), Icons.arrow_downward, Colors.green),
+                _buildSpeedItem('Upload', _formatSpeed(_uploadSpeed), Icons.arrow_upward, Colors.orange),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
-            child: Column(children: [
-              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Live Traffic', style: TextStyle(color: Color(0xFF00BCD4))), Row(children: [Icon(Icons.arrow_downward, color: Colors.green, size: 14), Text('Down', style: TextStyle(color: Colors.white54)), SizedBox(width: 8), Icon(Icons.arrow_upward, color: Colors.orange, size: 14), Text('Up', style: TextStyle(color: Colors.white54))])]),
-              const SizedBox(height: 16),
-              SizedBox(height: 150, child: LineChart(LineChartData(gridData: const FlGridData(show: true), titlesData: const FlTitlesData(show: false), borderData: FlBorderData(show: false),
-                lineBarsData: [LineChartBarData(spots: _downloadSpots, isCurved: true, color: Colors.green, barWidth: 2, dotData: const FlDotData(show: false)), LineChartBarData(spots: _uploadSpots, isCurved: true, color: Colors.orange, barWidth: 2, dotData: const FlDotData(show: false))]))),
-            ]),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3)),
+            ),
+            child: Column(
+              children: [
+                const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text('Traffic History', style: TextStyle(color: Color(0xFF00BCD4))), Icon(Icons.show_chart, color: Color(0xFF00BCD4))]),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 150,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: true),
+                      titlesData: const FlTitlesData(show: false),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(spots: _downloadHistory, isCurved: true, color: Colors.green, barWidth: 2, dotData: const FlDotData(show: false)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
-            child: Column(children: [
-              _buildInfoRow('Connected to', _currentSSID.isNotEmpty ? _currentSSID : 'Not connected', Icons.wifi),
-              _buildInfoRow('IP Address', _currentIP.isNotEmpty ? _currentIP : '0.0.0.0', Icons.ip),
-            ]),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
+            child: Column(
+              children: [
+                _buildInfoRow('Connected to', _currentSSID.isNotEmpty ? _currentSSID : 'Not connected', Icons.wifi),
+                _buildInfoRow('IP Address', _currentIP.isNotEmpty ? _currentIP : '0.0.0.0', Icons.ip),
+                _buildInfoRow('Total Download', '${_totalDownload.toStringAsFixed(2)} GB', Icons.download),
+                _buildInfoRow('Total Upload', '${_totalUpload.toStringAsFixed(2)} GB', Icons.upload),
+              ],
+            ),
           ),
         ],
       ),
@@ -224,21 +248,34 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
-            child: Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('WiFi Networks', style: TextStyle(color: Color(0xFF00BCD4))), ElevatedButton(onPressed: _isScanning ? null : _scanWiFi, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: Text(_isScanning ? 'SCANNING...' : 'SCAN'))]),
-              ..._wifiNetworks.take(5).map((net) => Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(8)),
-                child: Row(children: [const Icon(Icons.wifi, color: Color(0xFF00BCD4), size: 20), const SizedBox(width: 12), Expanded(child: Text(net['ssid']!, style: const TextStyle(color: Colors.white))), Text('${net['signal']} dBm', style: const TextStyle(color: Colors.white54))])),
-            ]),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
+            child: Column(
+              children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [const Text('WiFi Networks', style: TextStyle(color: Color(0xFF00BCD4))), ElevatedButton(onPressed: _isScanning ? null : _scanWiFi, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: Text(_isScanning ? 'SCANNING...' : 'SCAN'))]),
+                const SizedBox(height: 12),
+                ..._wifiNetworks.take(5).map((net) => Container(
+                  margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(8)),
+                  child: Row(children: [const Icon(Icons.wifi, color: Color(0xFF00BCD4), size: 20), const SizedBox(width: 12), Expanded(child: Text(net['ssid']!, style: const TextStyle(color: Colors.white))), Text('${net['signal']} dBm', style: const TextStyle(color: Colors.white54))]),
+                )),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
-            child: Column(children: [
-              const Text('Port Scanner', style: TextStyle(color: Color(0xFF00BCD4))),
-              Row(children: [Expanded(child: TextField(style: const TextStyle(color: Colors.white), onChanged: (v) => _scanTarget = v, decoration: const InputDecoration(hintText: 'Enter IP'))), const SizedBox(width: 8), ElevatedButton(onPressed: _isScanning ? null : _scanPorts, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: Text(_isScanning ? 'SCANNING...' : 'SCAN'))]),
-              ..._openPorts.map((port) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                child: Row(children: [const Icon(Icons.check_circle, color: Colors.green, size: 16), const SizedBox(width: 8), Text('Port ${port['port']} - ${port['service']}', style: const TextStyle(color: Colors.white))])),
-            ]),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
+            child: Column(
+              children: [
+                const Text('Port Scanner', style: TextStyle(color: Color(0xFF00BCD4))),
+                Row(children: [Expanded(child: TextField(style: const TextStyle(color: Colors.white), onChanged: (v) => _scanTarget = v, decoration: const InputDecoration(hintText: 'Enter IP'))), const SizedBox(width: 8), ElevatedButton(onPressed: _isScanning ? null : _scanPorts, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: Text(_isScanning ? 'SCANNING...' : 'SCAN'))]),
+                ..._openPorts.map((port) => Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                  child: Row(children: [const Icon(Icons.check_circle, color: Colors.green, size: 16), const SizedBox(width: 8), Text('Port ${port['port']} - ${port['service']}', style: const TextStyle(color: Colors.white))])),
+              ],
+            ),
           ),
         ],
       ),
@@ -250,12 +287,16 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
-            child: Column(children: [
-              const Text('Ping Tool', style: TextStyle(color: Color(0xFF00BCD4))),
-              Row(children: [Expanded(child: TextField(controller: _pingHost, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(hintText: 'Host or IP'))), const SizedBox(width: 8), ElevatedButton(onPressed: _isPinging ? null : _pingHost, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: _isPinging ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('PING'))]),
-              if (_pingResult.isNotEmpty) Container(margin: const EdgeInsets.only(top: 12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)), child: Text(_pingResult, style: const TextStyle(color: Color(0xFF00BCD4)))),
-            ]),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF00BCD4).withOpacity(0.3))),
+            child: Column(
+              children: [
+                const Text('Ping Tool', style: TextStyle(color: Color(0xFF00BCD4))),
+                Row(children: [Expanded(child: TextField(controller: _pingHost, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(hintText: 'Host or IP'))), const SizedBox(width: 8), ElevatedButton(onPressed: _isPinging ? null : _pingHost, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)), child: _isPinging ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('PING'))]),
+                if (_pingResult.isNotEmpty) Container(margin: const EdgeInsets.only(top: 12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)), child: Text(_pingResult, style: const TextStyle(color: Color(0xFF00BCD4)))),
+              ],
+            ),
           ),
         ],
       ),
@@ -276,15 +317,15 @@ class _NetworkHubAppState extends State<NetworkHubApp> {
     );
   }
 
+  Widget _buildSpeedItem(String label, String speed, IconData icon, Color color) {
+    return Column(children: [Icon(icon, color: color, size: 24), const SizedBox(height: 8), Text(speed, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.bold)), Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12))]);
+  }
+
   Widget _buildInfoRow(String label, String value, IconData icon) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(children: [Icon(icon, color: const Color(0xFF00BCD4), size: 16), const SizedBox(width: 8), Text(label, style: const TextStyle(color: Colors.white54)), const Spacer(), Text(value, style: const TextStyle(color: Colors.white))]));
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(children: [Icon(icon, color: const Color(0xFF00BCD4), size: 16), const SizedBox(width: 8), Text(label, style: const TextStyle(color: Colors.white54)), const Spacer(), Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500))]));
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.3))),
-      child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)), const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.white54, fontSize: 11)), Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold))]))]));
+    return Container(margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.3))), child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.white54, fontSize: 11)), Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold))]))]));
   }
 }
