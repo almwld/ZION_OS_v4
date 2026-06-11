@@ -5,22 +5,33 @@ import 'apps/wifi_scanner.dart';
 import 'apps/exploit_db.dart';
 import 'apps/crypto_tool.dart';
 import 'apps/stealth_mode.dart';
-import 'apps/settings_app.dart';
-import 'apps/settings_app.dart';
-import 'apps/file_manager.dart';
-import 'apps/file_manager.dart';
-import 'apps/web_browser.dart';
-import 'apps/web_browser.dart';
-import 'apps/text_analyzer.dart';
-import 'apps/file_manager.dart';
-import 'apps/web_browser.dart';
-import 'apps/web_browser.dart';
-import 'apps/text_analyzer.dart';
 import 'apps/password_cracker.dart';
 import 'apps/ddos_attack.dart';
 import 'apps/forensics.dart';
 import 'apps/database_hacking.dart';
 import 'apps/cloud_attacks.dart';
+import 'apps/settings_app.dart';
+import 'apps/file_manager.dart';
+import 'apps/web_browser.dart';
+import 'apps/text_analyzer.dart';
+import 'apps/qr_scanner.dart';
+import 'apps/alarms_clock.dart';
+import 'apps/calculator.dart';
+import 'apps/notes_app.dart';
+import 'apps/weather_app.dart';
+import 'apps/currency_converter.dart';
+import 'apps/translator_app.dart';
+import 'apps/maps_app.dart';
+import 'apps/gallery_app.dart';
+import 'apps/video_player_app.dart';
+import 'apps/documents_app.dart';
+import 'apps/radio_app.dart';
+import 'apps/file_sharing.dart';
+import 'apps/email_client.dart';
+import 'apps/calendar_app.dart';
+import 'apps/date_calculator.dart';
+import 'apps/unit_converter.dart';
+import 'apps/percentage_calculator.dart';
 
 class ZionDesktop extends StatefulWidget {
   const ZionDesktop({super.key});
@@ -41,11 +52,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
   ];
 
   final List<Map<String, dynamic>> _apps = [
-    // Tools
-    {"name": "TERMINAL", "icon": Icons.terminal, "category": "TOOLS", "screen": const TerminalApp()},
-    {"name": "CRYPTO", "icon": Icons.lock, "category": "TOOLS", "screen": const CryptoToolApp()},
-    
-    // Attack
+    // ATTACK
     {"name": "WIFI", "icon": Icons.wifi, "category": "ATTACK", "screen": const WiFiScannerApp()},
     {"name": "EXPLOIT", "icon": Icons.bug_report, "category": "ATTACK", "screen": const ExploitDBApp()},
     {"name": "CRACKER", "icon": Icons.vpn_key, "category": "ATTACK", "screen": const PasswordCrackerApp()},
@@ -53,23 +60,38 @@ class _ZionDesktopState extends State<ZionDesktop> {
     {"name": "DATABASE", "icon": Icons.storage, "category": "ATTACK", "screen": const DatabaseHackingApp()},
     {"name": "CLOUD", "icon": Icons.cloud, "category": "ATTACK", "screen": const CloudAttacksApp()},
     
-    // Analysis
+    // DEFENSE
+    {"name": "STEALTH", "icon": Icons.visibility_off, "category": "DEFENSE", "screen": const StealthModeApp()},
+    {"name": "CRYPTO", "icon": Icons.lock, "category": "DEFENSE", "screen": const CryptoToolApp()},
+    
+    // ANALYSIS
     {"name": "NETWORK", "icon": Icons.network_wifi, "category": "ANALYSIS", "screen": const NetworkScannerApp()},
     {"name": "FORENSICS", "icon": Icons.search, "category": "ANALYSIS", "screen": const ForensicsApp()},
+    {"name": "TEXT ANALYZER", "icon": Icons.analytics, "category": "ANALYSIS", "screen": const TextAnalyzerApp()},
     
-    // Defense
-    {"name": "STEALTH", "icon": Icons.visibility_off, "category": "DEFENSE", "screen": const StealthModeApp()},
+    // TOOLS
+    {"name": "TERMINAL", "icon": Icons.terminal, "category": "TOOLS", "screen": const TerminalApp()},
+    {"name": "FILE MANAGER", "icon": Icons.folder, "category": "TOOLS", "screen": const FileManagerApp()},
+    {"name": "BROWSER", "icon": Icons.public, "category": "TOOLS", "screen": const WebBrowserApp()},
+    {"name": "CALCULATOR", "icon": Icons.calculate, "category": "TOOLS", "screen": const CalculatorApp()},
+    {"name": "UNIT CONV", "icon": Icons.science, "category": "TOOLS", "screen": const UnitConverterApp()},
+    {"name": "PERCENT", "icon": Icons.percent, "category": "TOOLS", "screen": const PercentageCalculatorApp()},
+    {"name": "DATE CALC", "icon": Icons.calculate, "category": "TOOLS", "screen": const DateCalculatorApp()},
+    {"name": "QR SCANNER", "icon": Icons.qr_code_scanner, "category": "TOOLS", "screen": const QRScannerApp()},
+    {"name": "NOTES", "icon": Icons.note, "category": "TOOLS", "screen": const NotesApp()},
+    {"name": "WEATHER", "icon": Icons.wb_sunny, "category": "TOOLS", "screen": const WeatherApp()},
+    {"name": "CURRENCY", "icon": Icons.attach_money, "category": "TOOLS", "screen": const CurrencyConverterApp()},
+    {"name": "TRANSLATOR", "icon": Icons.translate, "category": "TOOLS", "screen": const TranslatorApp()},
+    {"name": "MAPS", "icon": Icons.map, "category": "TOOLS", "screen": const MapsApp()},
+    {"name": "GALLERY", "icon": Icons.photo_library, "category": "TOOLS", "screen": const GalleryApp()},
+    {"name": "VIDEO", "icon": Icons.play_circle_filled, "category": "TOOLS", "screen": const VideoPlayerApp()},
+    {"name": "DOCUMENTS", "icon": Icons.description, "category": "TOOLS", "screen": const DocumentsApp()},
+    {"name": "RADIO", "icon": Icons.radio, "category": "TOOLS", "screen": const RadioApp()},
+    {"name": "SHARE", "icon": Icons.share, "category": "TOOLS", "screen": const FileSharingApp()},
+    {"name": "EMAIL", "icon": Icons.email, "category": "TOOLS", "screen": const EmailClient()},
+    {"name": "CALENDAR", "icon": Icons.calendar_today, "category": "TOOLS", "screen": const CalendarApp()},
+    {"name": "CLOCK", "icon": Icons.access_time, "category": "TOOLS", "screen": const AlarmsClockApp()},
     {"name": "SETTINGS", "icon": Icons.settings, "category": "TOOLS", "screen": const SettingsApp()},
-    {"name": "SETTINGS", "icon": Icons.settings, "category": "TOOLS", "screen": const SettingsApp()},
-    {"name": "FILE MGR", "icon": Icons.folder, "category": "TOOLS", "screen": const FileManagerApp()},
-    {"name": "FILE MGR", "icon": Icons.folder, "category": "TOOLS", "screen": const FileManagerApp()},
-    {"name": "BROWSER", "icon": Icons.public, "category": "TOOLS", "screen": const WebBrowserApp()},
-    {"name": "BROWSER", "icon": Icons.public, "category": "TOOLS", "screen": const WebBrowserApp()},
-    {"name": "ANALYZER", "icon": Icons.analytics, "category": "TOOLS", "screen": const TextAnalyzerApp()},
-    {"name": "FILE MGR", "icon": Icons.folder, "category": "TOOLS", "screen": const FileManagerApp()},
-    {"name": "BROWSER", "icon": Icons.public, "category": "TOOLS", "screen": const WebBrowserApp()},
-    {"name": "BROWSER", "icon": Icons.public, "category": "TOOLS", "screen": const WebBrowserApp()},
-    {"name": "ANALYZER", "icon": Icons.analytics, "category": "TOOLS", "screen": const TextAnalyzerApp()},
   ];
 
   @override
@@ -103,9 +125,8 @@ class _ZionDesktopState extends State<ZionDesktop> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 600;
-    final iconSize = isSmallScreen ? 36.0 : 42.0;
-    final iconContainerSize = isSmallScreen ? 50.0 : 58.0;
-    final fontSize = isSmallScreen ? 9.0 : 10.0;
+    final iconContainerSize = isSmallScreen ? 50.0 : 55.0;
+    final iconSize = isSmallScreen ? 24.0 : 28.0;
     
     final filteredApps = _apps.where((app) => app['category'] == _categories[_selectedIndex]['name']).toList();
 
@@ -214,20 +235,12 @@ class _ZionDesktopState extends State<ZionDesktop> {
                               color: const Color(0xFF00BCD4).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              app['icon'],
-                              color: const Color(0xFF00BCD4),
-                              size: iconSize,
-                            ),
+                            child: Icon(app['icon'], color: const Color(0xFF00BCD4), size: iconSize),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             app['name'],
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -252,17 +265,13 @@ class _ZionDesktopState extends State<ZionDesktop> {
                 children: [
                   _buildDockIcon(Icons.terminal, 'TERM', () => _openApp(_apps.firstWhere((a) => a['name'] == 'TERMINAL'))),
                   const SizedBox(width: 12),
-                  _buildDockIcon(Icons.wifi, 'WIFI', () => _openApp(_apps.firstWhere((a) => a['name'] == 'WIFI'))),
+                  _buildDockIcon(Icons.folder, 'FILES', () => _openApp(_apps.firstWhere((a) => a['name'] == 'FILE MANAGER'))),
                   const SizedBox(width: 12),
-                  _buildDockIcon(Icons.lock, 'LOCK', () => _openApp(_apps.firstWhere((a) => a['name'] == 'CRYPTO'))),
+                  _buildDockIcon(Icons.public, 'WEB', () => _openApp(_apps.firstWhere((a) => a['name'] == 'BROWSER'))),
                   const SizedBox(width: 12),
-                  _buildDockIcon(Icons.visibility_off, 'HIDE', () => _openApp(_apps.firstWhere((a) => a['name'] == 'STEALTH'))),
+                  _buildDockIcon(Icons.calculate, 'CALC', () => _openApp(_apps.firstWhere((a) => a['name'] == 'CALCULATOR'))),
                   const SizedBox(width: 12),
-                  _buildDockIcon(Icons.vpn_key, 'KEY', () => _openApp(_apps.firstWhere((a) => a['name'] == 'CRACKER'))),
-                  const SizedBox(width: 12),
-                  Container(width: 1, height: 30, color: const Color(0xFF00BCD4).withOpacity(0.15)),
-                  const SizedBox(width: 12),
-                  _buildDockIcon(Icons.apps, 'APPS', () {}),
+                  _buildDockIcon(Icons.settings, 'SET', () => _openApp(_apps.firstWhere((a) => a['name'] == 'SETTINGS'))),
                 ],
               ),
             ),
@@ -288,10 +297,7 @@ class _ZionDesktopState extends State<ZionDesktop> {
             child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white38, fontSize: 8),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 8)),
         ],
       ),
     );
