@@ -1,6 +1,6 @@
 name: zion_os
-description: Zion OS - نظام تشغيل للاختراق
-version: 3.3.0+10
+description: Zion OS - نظام تشغيل متكامل مع Termux
+version: 4.5.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -8,18 +8,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.4.9
-  path_provider: ^2.1.1
+  provider: ^6.1.1
   shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
   permission_handler: ^11.0.1
-  connectivity_plus: ^5.0.2
-  network_info_plus: ^4.0.0
-  flutter_secure_storage: ^9.0.0
-  crypto: ^3.0.3
-  http: ^1.1.0
-  intl: ^0.18.1
-  url_launcher: ^6.2.1
-  share_plus: ^7.2.1
+  local_auth: ^2.1.6
+  easy_localization: ^3.0.3
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -30,9 +26,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/translations/
+    - assets/wallpapers/
     - assets/icons/
-    - assets/images/
-    - assets/fonts/
 
 flutter_launcher_icons:
   android: true
