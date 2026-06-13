@@ -223,7 +223,7 @@ class _SystemControlCenterState extends State<SystemControlCenter> with SingleTi
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.ram, color: Color(0xFF00BCD4)),
+                    Icon(Icons.memory, color: Color(0xFF00BCD4)),
                     SizedBox(width: 8),
                     Text('RAM Usage', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
                   ],
@@ -321,7 +321,7 @@ class _SystemControlCenterState extends State<SystemControlCenter> with SingleTi
       padding: const EdgeInsets.all(20),
       children: [
         _buildStatCard('CPU Usage', '${_currentCPU.toStringAsFixed(1)}%', Icons.memory, _getCPUColor()),
-        _buildStatCard('RAM Usage', '${_currentRAM.toStringAsFixed(1)}%', Icons.ram, Colors.green),
+        _buildStatCard('RAM Usage', '${_currentRAM.toStringAsFixed(1)}%', Icons.memory, Colors.green),
         _buildStatCard('Storage Usage', '${_currentDisk.toStringAsFixed(1)}%', Icons.storage, Colors.orange),
         _buildStatCard('Temperature', '${_currentTemp.toStringAsFixed(1)}°C', Icons.thermostat, Colors.red),
         _buildStatCard('Uptime', _formatUptime(_currentUptime), Icons.timer, const Color(0xFF00BCD4)),

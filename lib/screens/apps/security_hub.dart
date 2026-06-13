@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class ${hub}App extends StatelessWidget {
-  const ${hub}App({super.key});
+class SecurityHubApp extends StatelessWidget {
+  const SecurityHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // خلفية سوداء صلبة
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('${hub.replaceAll('_', ' ').toUpperCase()}', style: const TextStyle(color: Color(0xFF00BCD4))),
+        title: const Text('Security Hub', style: TextStyle(color: Color(0xFF00BCD4))),
         backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF00BCD4)),
@@ -17,7 +17,7 @@ class ${hub}App extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          'Coming Soon',
+          'Security Hub - Coming Soon',
           style: TextStyle(color: Color(0xFF00BCD4), fontSize: 18),
         ),
       ),

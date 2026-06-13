@@ -285,7 +285,7 @@ class _PowerCenterState extends State<PowerCenter> with SingleTickerProviderStat
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.ram, color: Color(0xFF00BCD4)),
+                    Icon(Icons.memory, color: Color(0xFF00BCD4)),
                     SizedBox(width: 8),
                     Text('RAM Usage', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
                   ],
@@ -383,7 +383,7 @@ class _PowerCenterState extends State<PowerCenter> with SingleTickerProviderStat
       padding: const EdgeInsets.all(20),
       children: [
         _buildStatCard('CPU', '${service.cpuUsage.toStringAsFixed(1)}%', Icons.memory, Colors.blue),
-        _buildStatCard('RAM', '${service.ramUsage.toStringAsFixed(1)}%', Icons.ram, Colors.green),
+        _buildStatCard('RAM', '${service.ramUsage.toStringAsFixed(1)}%', Icons.memory, Colors.green),
         _buildStatCard('Storage', '${service.diskUsage.toStringAsFixed(1)}%', Icons.storage, Colors.orange),
         _buildStatCard('Temperature', '${service.temperature.toStringAsFixed(1)}°C', Icons.thermostat, Colors.red),
         _buildStatCard('Battery', '${service.batteryLevel}%', Icons.battery_full, service.getBatteryColor()),

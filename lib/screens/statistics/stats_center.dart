@@ -130,7 +130,7 @@ class _StatisticsCenterState extends State<StatisticsCenter> with SingleTickerPr
               _buildStatCard('Attacks', _totalAttacks.toString(), Icons.flash_on, const Color(0xFFFF5722)),
               _buildStatCard('Detections', _totalDetections.toString(), Icons.security, const Color(0xFF9C27B0)),
               _buildStatCard('Avg CPU', '${_avgCpuLoad.toStringAsFixed(1)}%', Icons.memory, const Color(0xFFFF9800)),
-              _buildStatCard('Avg RAM', '${_avgMemUsage.toStringAsFixed(1)}%', Icons.ram, const Color(0xFF2196F3)),
+              _buildStatCard('Avg RAM', '${_avgMemUsage.toStringAsFixed(1)}%', Icons.memory, const Color(0xFF2196F3)),
             ],
           ),
           

@@ -179,7 +179,7 @@ class _MonitoringCenterState extends State<MonitoringCenter> {
               crossAxisSpacing: 12,
               children: [
                 _buildStatCard('CPU', '${(_cpuUsage * 100).toStringAsFixed(1)}%', Icons.memory, _getStatusColor(_cpuUsage * 100, false)),
-                _buildStatCard('RAM', '${(_ramUsage * 100).toStringAsFixed(1)}%', Icons.ram, _getStatusColor(_ramUsage * 100, false)),
+                _buildStatCard('RAM', '${(_ramUsage * 100).toStringAsFixed(1)}%', Icons.memory, _getStatusColor(_ramUsage * 100, false)),
                 _buildStatCard('Battery', '${(_batteryLevel * 100).toStringAsFixed(1)}%', Icons.battery_full, _getStatusColor(_batteryLevel * 100, true)),
                 _buildStatCard('Disk', '${(_diskUsage * 100).toStringAsFixed(1)}%', Icons.storage, _getStatusColor(_diskUsage * 100, false)),
                 _buildStatCard('Network', '${(_networkSpeed * 100).toStringAsFixed(1)} Mbps', Icons.speed, const Color(0xFF00BCD4)),
