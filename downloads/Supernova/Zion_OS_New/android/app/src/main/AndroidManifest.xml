@@ -9,7 +9,6 @@
     <application
         android:label="Zion OS"
         android:name="${applicationName}"
-        android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true">
         <activity
             android:name=".MainActivity"
