@@ -12,7 +12,6 @@
     <application
         android:label="Zion OS"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
