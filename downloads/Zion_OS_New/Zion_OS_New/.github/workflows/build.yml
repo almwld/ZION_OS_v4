@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: 🎨 Create Launcher Icons
+      - name: 🔑 Generate launcher icons
         run: flutter pub run flutter_launcher_icons:main
 
       - name: Build APK
