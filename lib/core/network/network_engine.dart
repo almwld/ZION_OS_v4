@@ -1,24 +1,23 @@
 import 'dart:async';
 import 'dart:io';
 
-/// Network primitives that work from Dart/Flutter without depending on
-/// Android/Linux shell commands such as ping, arp or netstat.
-/// These operations are intended for networks the user is authorized to test.
+/// Network primitives that work from Dart/Flutter without Android/Linux shell commands.
+/// Use only on networks and hosts the user is authorized to assess.
 class NetworkEngine {
   static const List<int> _discoveryPorts = <int>[53, 80, 443, 445, 139, 22, 23, 3389, 8080, 8443];
 
   static Future<List<String>> pingSweep(String subnet, {int concurrency = 24, Duration timeout = const Duration(milliseconds: 700)}) async {
     final normalized = subnet.trim().replaceFirst(RegExp(r'\.$'), '');
-    if (!RegExp(r'^(?:\d{1,3}\.){2}\d{1,3}\$').hasMatch(normalized)) {
+    final parts = normalized.split('.');
+    if (parts.length != 3 || parts.any((part) => int.tryParse(part) == null)) {
       throw const FormatException('Expected an IPv4 /24 prefix such as 192.168.1');
     }
-    final octets = normalized.split('.').map(int.parse).toList();
-    if (octets.any((value) => value > 255)) throw const FormatException('Invalid IPv4 prefix');
+    final octets = parts.map(int.parse).toList();
+    if (octets.any((value) => value < 0 || value > 255)) throw const FormatException('Invalid IPv4 prefix');
 
     final active = <String>{};
     final ips = List<String>.generate(254, (i) => '$normalized.${i + 1}');
     final safeConcurrency = concurrency.clamp(1, 64).toInt();
-
     for (var offset = 0; offset < ips.length; offset += safeConcurrency) {
       final batch = ips.skip(offset).take(safeConcurrency).toList();
       final results = await Future.wait(batch.map((ip) => _probeHost(ip, timeout)));
