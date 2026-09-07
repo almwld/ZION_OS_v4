@@ -10,12 +10,6 @@ class NetworkEngine {
     53, 80, 443, 445, 139, 22, 23, 3389, 8080, 8443,
   ];
 
-  /// Best-effort LAN discovery using TCP connection attempts.
-  ///
-  /// Android does not provide a portable ICMP API to Flutter, and invoking
-  /// `ping` through a shell is unreliable on stock devices. A TCP probe is a
-  /// safer, portable fallback. An empty result is valid when hosts expose no
-  /// probed service or the platform/network blocks probes.
   static Future<List<String>> pingSweep(
     String subnet, {
     int concurrency = 24,
@@ -25,20 +19,24 @@ class NetworkEngine {
     if (!RegExp(r'^(?:\d{1,3}\.){2}\d{1,3}\$').hasMatch(normalized)) {
       throw const FormatException('Expected an IPv4 /24 prefix such as 192.168.1');
     }
+    final octets = normalized.split('.').map(int.parse).toList();
+    if (octets.any((value) => value > 255)) {
+      throw const FormatException('Invalid IPv4 prefix');
+    }
 
     final active = <String>{};
     final ips = List<String>.generate(254, (i) => '$normalized.${i + 1}');
+    final safeConcurrency = concurrency.clamp(1, 64).toInt();
 
-    for (var offset = 0; offset < ips.length; offset += concurrency) {
-      final batch = ips.skip(offset).take(concurrency);
+    for (var offset = 0; offset < ips.length; offset += safeConcurrency) {
+      final batch = ips.skip(offset).take(safeConcurrency).toList();
       final results = await Future.wait(batch.map((ip) => _probeHost(ip, timeout)));
       for (var i = 0; i < results.length; i++) {
-        if (results[i]) active.add(ips[offset + i]);
+        if (results[i]) active.add(batch[i]);
       }
     }
 
-    final sorted = active.toList();
-    sorted.sort(_compareIpv4);
+    final sorted = active.toList()..sort(_compareIpv4);
     return sorted;
   }
 
@@ -67,7 +65,6 @@ class NetworkEngine {
     return 0;
   }
 
-  /// Checks whether TCP ports are accepting connections.
   static Future<List<int>> scanPorts(
     String host,
     List<int> ports, {
@@ -110,7 +107,8 @@ class NetworkEngine {
           (data) {
             if (!completer.isCompleted) {
               final text = String.fromCharCodes(data).trim();
-              completer.complete(text.isEmpty ? 'No banner' : text.substring(0, text.length.clamp(0, 512)));
+              final limited = text.length > 512 ? text.substring(0, 512) : text;
+              completer.complete(limited.isEmpty ? 'No banner' : limited);
             }
           },
           onError: (Object _) {
@@ -121,7 +119,6 @@ class NetworkEngine {
           },
           cancelOnError: true,
         );
-
         final banner = await completer.future.timeout(timeout, onTimeout: () => 'No banner');
         if (banner != 'No banner') results[port] = banner;
       } catch (_) {
