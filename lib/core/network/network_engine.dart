@@ -1,56 +1,135 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
+/// Network primitives that work from Dart/Flutter without depending on
+/// Android/Linux shell commands such as ping, arp or netstat.
+///
+/// These operations are intended for networks the user is authorized to test.
 class NetworkEngine {
-  static Future<List<String>> pingSweep(String subnet) async {
-    final activeHosts = <String>[];
-    final futures = <Future>[];
-    
-    for (var i = 1; i <= 254; i++) {
-      final ip = '$subnet.$i';
-      futures.add(
-        Process.run('ping', ['-c', '1', '-W', '1', ip])
-          .then((result) {
-            if (result.exitCode == 0) activeHosts.add(ip);
-          }).catchError((_) {})
-      );
+  static const List<int> _discoveryPorts = <int>[
+    53, 80, 443, 445, 139, 22, 23, 3389, 8080, 8443,
+  ];
+
+  /// Best-effort LAN discovery using TCP connection attempts.
+  ///
+  /// Android does not provide a portable ICMP API to Flutter, and invoking
+  /// `ping` through a shell is unreliable on stock devices. A TCP probe is a
+  /// safer, portable fallback. An empty result is valid when hosts expose no
+  /// probed service or the platform/network blocks probes.
+  static Future<List<String>> pingSweep(
+    String subnet, {
+    int concurrency = 24,
+    Duration timeout = const Duration(milliseconds: 700),
+  }) async {
+    final normalized = subnet.trim().replaceFirst(RegExp(r'\.$'), '');
+    if (!RegExp(r'^(?:\d{1,3}\.){2}\d{1,3}\$').hasMatch(normalized)) {
+      throw const FormatException('Expected an IPv4 /24 prefix such as 192.168.1');
     }
-    await Future.wait(futures);
-    activeHosts.sort();
-    return activeHosts;
-  }
-  
-  static Future<List<int>> scanPorts(String host, List<int> ports) async {
-    final openPorts = <int>[];
-    for (final port in ports) {
-      try {
-        final socket = await Socket.connect(host, port, timeout: const Duration(seconds: 1));
-        socket.destroy();
-        openPorts.add(port);
-        print("✅ Port $port open on $host");
-      } catch (_) {
-        print("❌ Port $port closed on $host");
+
+    final active = <String>{};
+    final ips = List<String>.generate(254, (i) => '$normalized.${i + 1}');
+
+    for (var offset = 0; offset < ips.length; offset += concurrency) {
+      final batch = ips.skip(offset).take(concurrency);
+      final results = await Future.wait(batch.map((ip) => _probeHost(ip, timeout)));
+      for (var i = 0; i < results.length; i++) {
+        if (results[i]) active.add(ips[offset + i]);
       }
     }
-    openPorts.sort();
+
+    final sorted = active.toList();
+    sorted.sort(_compareIpv4);
+    return sorted;
+  }
+
+  static Future<bool> _probeHost(String host, Duration timeout) async {
+    for (final port in _discoveryPorts) {
+      Socket? socket;
+      try {
+        socket = await Socket.connect(host, port, timeout: timeout);
+        return true;
+      } catch (_) {
+        // Try the next common service port.
+      } finally {
+        socket?.destroy();
+      }
+    }
+    return false;
+  }
+
+  static int _compareIpv4(String a, String b) {
+    final aa = a.split('.').map(int.parse).toList();
+    final bb = b.split('.').map(int.parse).toList();
+    for (var i = 0; i < 4; i++) {
+      final c = aa[i].compareTo(bb[i]);
+      if (c != 0) return c;
+    }
+    return 0;
+  }
+
+  /// Checks whether TCP ports are accepting connections.
+  static Future<List<int>> scanPorts(
+    String host,
+    List<int> ports, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final openPorts = <int>[];
+    final uniquePorts = ports.where((p) => p >= 1 && p <= 65535).toSet().toList()..sort();
+
+    for (final port in uniquePorts) {
+      Socket? socket;
+      try {
+        socket = await Socket.connect(host, port, timeout: timeout);
+        openPorts.add(port);
+      } catch (_) {
+        // Closed, filtered or unreachable.
+      } finally {
+        socket?.destroy();
+      }
+    }
     return openPorts;
   }
-  
-  static Future<Map<int, String>> scanWithBanner(String host, List<int> ports) async {
+
+  /// Reads a small amount of service data from explicitly selected TCP ports.
+  /// No exploit or authentication bypass is attempted.
+  static Future<Map<int, String>> scanWithBanner(
+    String host,
+    List<int> ports, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
     final results = <int, String>{};
-    for (final port in ports) {
+    final uniquePorts = ports.where((p) => p >= 1 && p <= 65535).toSet().toList()..sort();
+
+    for (final port in uniquePorts) {
+      Socket? socket;
+      StreamSubscription<List<int>>? subscription;
+      final completer = Completer<String>();
       try {
-        final socket = await Socket.connect(host, port, timeout: const Duration(seconds: 2));
-        final completer = Completer<String>();
-        socket.listen((data) {
-          completer.complete(String.fromCharCodes(data).trim());
-          socket.destroy();
-        });
-        final banner = await completer.future.timeout(const Duration(seconds: 2), onTimeout: () => 'No banner');
-        if (banner.isNotEmpty && banner != 'No banner') {
-          results[port] = banner;
-        }
-      } catch (_) {}
+        socket = await Socket.connect(host, port, timeout: timeout);
+        subscription = socket.listen(
+          (data) {
+            if (!completer.isCompleted) {
+              final text = String.fromCharCodes(data).trim();
+              completer.complete(text.isEmpty ? 'No banner' : text.substring(0, text.length.clamp(0, 512)));
+            }
+          },
+          onError: (Object _) {
+            if (!completer.isCompleted) completer.complete('No banner');
+          },
+          onDone: () {
+            if (!completer.isCompleted) completer.complete('No banner');
+          },
+          cancelOnError: true,
+        );
+
+        final banner = await completer.future.timeout(timeout, onTimeout: () => 'No banner');
+        if (banner != 'No banner') results[port] = banner;
+      } catch (_) {
+        // Ignore closed/filtered services.
+      } finally {
+        await subscription?.cancel();
+        socket?.destroy();
+      }
     }
     return results;
   }
