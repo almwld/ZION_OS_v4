@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/lock_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('ar')],
@@ -31,7 +32,7 @@ class ZionOSApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'Zion OS 2027',
+            title: 'Zion OS 4.1',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.getThemeData(),
             localizationsDelegates: [
