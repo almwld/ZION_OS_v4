@@ -10,12 +10,12 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -23,12 +23,17 @@ android {
         minSdk = 21
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "4.1.0"
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            // Never ship an APK signed with the developer/debug key.
+            // Configure a release keystore in a private Gradle properties file
+            // or CI secrets before publishing to a store.
+            signingConfig = null
+            minifyEnabled = false
+            shrinkResources = false
         }
     }
 }
