@@ -60,6 +60,12 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Download Zion bootstrap
+        uses: actions/download-artifact@v4
+        with:
+          name: zion-termux-bootstrap-aarch64
+          path: android/app/src/main/assets/termux
+
       - name: Install dependencies
         run: flutter pub get
 
