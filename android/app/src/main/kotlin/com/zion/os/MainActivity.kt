@@ -20,7 +20,7 @@ class MainActivity : FlutterActivity() {
     private val systemChannel = "zion/system"
     private val terminalChannel = "zion.os/pty"
     private val terminalEvents = "zion.os/pty/events"
-    private val ioExecutor = Executors.newSingleThreadExecutor()
+    private val ioExecutor = Executors.newSingleThreadExecutor()\n\n    companion object {\n        init { System.loadLibrary("zionpty") }\n    }
     @Volatile private var shellProcess: Process? = null
     @Volatile private var outputSink: EventChannel.EventSink? = null
 
@@ -51,53 +51,47 @@ class MainActivity : FlutterActivity() {
                     "available" -> result.success(true)
                     "start" -> startShell(result)
                     "write" -> writeShell(call.argument<String>("input").orEmpty(), result)
-                    "resize" -> result.success(true)
+                    "resize" -> resizeShell(call, result)
                     "stop" -> stopShell(result)
                     else -> result.notImplemented()
                 }
             }
     }
 
-    private fun startShell(result: MethodChannel.Result) {
-        if (shellProcess?.isAlive == true) {
-            result.success(true)
-            return
-        }
+    private external fun nativeStartPty(command: String, cwd: String, argv: Array<String>, env: Array<String>, rows: Int, cols: Int): Int
+    private external fun nativeReadPty(): ByteArray?
+    private external fun nativeWritePty(data: ByteArray): Int
+    private external fun nativeResizePty(rows: Int, cols: Int): Boolean
+    private external fun nativeStopPty()
 
+    private fun startShell(result: MethodChannel.Result) {
         try {
             val root = File(filesDir, "termux")
             val prefix = File(root, "usr")
             val home = File(root, "home")
             val tmp = File(root, "tmp")
-            home.mkdirs()
-            prefix.mkdirs()
-            tmp.mkdirs()
-
+            home.mkdirs(); prefix.mkdirs(); tmp.mkdirs()
+            installBootstrapIfPresent(root)
             val bash = File(prefix, "bin/bash")
             val executable = if (bash.canExecute()) bash.absolutePath else "/system/bin/sh"
-            val process = ProcessBuilder(executable, "-i")
-                .directory(home)
-                .redirectErrorStream(true)
-                .apply {
-                    environment()["HOME"] = home.absolutePath
-                    environment()["PREFIX"] = prefix.absolutePath
-                    environment()["TERMUX_PREFIX"] = prefix.absolutePath
-                    environment()["TMPDIR"] = tmp.absolutePath
-                    environment()["PATH"] = File(prefix, "bin").absolutePath + ":/system/bin:/system/xbin"
-                    environment()["TERM"] = "xterm-256color"
-                    environment()["LANG"] = "C.UTF-8"
-                    environment()["PS1"] = "zion@os:\\w\\$ "
-                }
-                .start()
-
-            shellProcess = process
+            val env = arrayOf(
+                "HOME=${home.absolutePath}",
+                "PREFIX=${prefix.absolutePath}",
+                "TERMUX_PREFIX=${prefix.absolutePath}",
+                "TMPDIR=${tmp.absolutePath}",
+                "PATH=${File(prefix, "bin").absolutePath}:/system/bin:/system/xbin",
+                "TERM=xterm-256color",
+                "LANG=C.UTF-8",
+                "PS1=zion@os:\\w\\$ "
+            )
+            val argv = arrayOf(executable, "-i")
+            val fd = nativeStartPty(executable, home.absolutePath, argv, env, 30, 100)
+            if (fd < 0) { result.success(false); return }
             ioExecutor.execute {
-                BufferedReader(InputStreamReader(process.inputStream)).useLines { lines ->
-                    lines.forEach { line -> outputSink?.success(line + "\\n") }
+                while (true) {
+                    val bytes = nativeReadPty() ?: break
+                    outputSink?.success(String(bytes, Charsets.UTF_8))
                 }
-                val code = process.waitFor()
-                outputSink?.success("\\n[ZION] shell exited (code " + code + ")\\n")
-                shellProcess = null
             }
             result.success(true)
         } catch (error: Exception) {
@@ -107,31 +101,46 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun writeShell(input: String, result: MethodChannel.Result) {
-        val process = shellProcess
-        if (process == null || !process.isAlive) {
-            result.error("NOT_RUNNING", "Shell process is not running.", null)
-            return
-        }
         try {
-            process.outputStream.write(input.toByteArray(Charsets.UTF_8))
-            process.outputStream.flush()
-            result.success(null)
+            if (nativeWritePty(input.toByteArray(Charsets.UTF_8)) < 0) {
+                result.error("WRITE_FAILED", "PTY is not running.", null)
+            } else result.success(null)
         } catch (error: Exception) {
             result.error("WRITE_FAILED", error.message, null)
         }
     }
 
+    private fun resizeShell(call: io.flutter.plugin.common.MethodCall, result: MethodChannel.Result) {
+        result.success(nativeResizePty(call.argument<Int>("rows") ?: 30, call.argument<Int>("cols") ?: 100))
+    }
+
     private fun stopShell(result: MethodChannel.Result) {
-        shellProcess?.destroy()
-        shellProcess = null
+        nativeStopPty()
         result.success(null)
     }
 
-    override fun onDestroy() {
-        shellProcess?.destroy()
-        shellProcess = null
-        ioExecutor.shutdownNow()
-        super.onDestroy()
+    private fun installBootstrapIfPresent(root: File) {
+        val marker = File(root, ".bootstrap-installed")
+        if (marker.exists()) return
+        assets.list("termux")?.filter { it.endsWith(".zip") }?.forEach { name ->
+            val zipFile = File(cacheDir, name)
+            assets.open("termux/${name}").use { input -> zipFile.outputStream().use { input.copyTo(it) } }
+            java.util.zip.ZipInputStream(zipFile.inputStream().buffered()).use { zip ->
+                var entry = zip.nextEntry
+                while (entry != null) {
+                    val destination = File(root, entry.name)
+                    if (entry.isDirectory) destination.mkdirs()
+                    else {
+                        destination.parentFile?.mkdirs()
+                        destination.outputStream().use { zip.copyTo(it) }
+                        if (destination.name != "bash") destination.setExecutable(true, false)
+                    }
+                    entry = zip.nextEntry
+                }
+            }
+            zipFile.delete()
+            marker.writeText("installed")
+        }
     }
 
     private fun scanWifi(result: MethodChannel.Result) {
