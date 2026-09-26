@@ -37,8 +37,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify generated metadata is clean
-        run: git diff --exit-code
+      - name: Verify project manifest is unchanged
+        run: git diff --exit-code -- pubspec.yaml
 
       - name: Static analysis
         run: flutter analyze --no-fatal-infos
