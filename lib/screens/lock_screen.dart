@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
-import 'desktop_home.dart';
+import 'post_verification_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class LockScreen extends StatefulWidget {
@@ -39,7 +39,7 @@ class _LockScreenState extends State<LockScreen> {
   void _unlock() {
     final provider = Provider.of<ThemeProvider>(context, listen: false);
     if (provider.validatePin(_pinController.text)) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ZionDesktop()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PostVerificationScreen()));
     } else {
       setState(() {
         _errorMessage = 'PIN Incorrect';
