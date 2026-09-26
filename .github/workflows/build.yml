@@ -14,7 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  termux-bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Zion bootstrap (aarch64)
+        run: |
+          chmod +x tools/termux/build_zion_bootstrap.sh
+          tools/termux/build_zion_bootstrap.sh aarch64
+
+      - name: Stage bootstrap
+        run: |
+          mkdir -p android/app/src/main/assets/termux
+          cp build/termux-bootstrap/bootstrap-aarch64.zip android/app/src/main/assets/termux/bootstrap-aarch64.zip
+
+      - name: Upload bootstrap
+        uses: actions/upload-artifact@v4
+        with:
+          name: zion-termux-bootstrap-aarch64
+          path: build/termux-bootstrap/bootstrap-aarch64.zip
+          if-no-files-found: error
+          retention-days: 14
+
   quality:
+    needs: termux-bootstrap
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
