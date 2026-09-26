@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
-#include <pty.h>
+
 
 static int master_fd = -1;
 static pid_t child_pid = -1;
@@ -46,10 +46,25 @@ Java_com_zion_os_MainActivity_nativeStartPty(JNIEnv* env, jobject thiz, jstring 
     }
 
     struct winsize ws = { .ws_row=(unsigned short)rows, .ws_col=(unsigned short)cols, .ws_xpixel=0, .ws_ypixel=0 };
-    int fd = -1;
-    pid_t pid = forkpty(&fd, NULL, NULL, &ws);
+    int fd = open("/dev/ptmx", O_RDWR | O_CLOEXEC);
+    if (fd < 0 || grantpt(fd) != 0 || unlockpt(fd) != 0) {
+        if (fd >= 0) close(fd);
+        fd = -1;
+    }
+    char devname[128] = {0};
+    if (fd >= 0 && ptsname_r(fd, devname, sizeof(devname)) != 0) {
+        close(fd);
+        fd = -1;
+    }
+    if (fd >= 0) ioctl(fd, TIOCSWINSZ, &ws);
+    pid_t pid = fd >= 0 ? fork() : -1;
     if (pid == 0) {
         setsid();
+        int slave = open(devname, O_RDWR);
+        if (slave < 0) _exit(125);
+        dup2(slave, 0); dup2(slave, 1); dup2(slave, 2);
+        if (slave > 2) close(slave);
+        close(fd);
         if (chdir(dir) != 0) _exit(126);
         clearenv();
         for (int i = 0; envs[i]; ++i) putenv(envs[i]);
