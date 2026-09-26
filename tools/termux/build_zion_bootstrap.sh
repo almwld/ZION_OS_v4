@@ -8,10 +8,10 @@ OUT="$ROOT/build/termux-bootstrap"
 mkdir -p "$ROOT/build"
 
 if [[ ! -d "$WORK/.git" ]]; then
-  git clone --depth=1 https://github.com/termux/termux-packages.git "$WORK"
+  git clone --depth=1 --branch infra-improvs https://github.com/agnostic-apollo/termux-packages.git "$WORK"
 fi
 
-export TERMUX_APP_PACKAGE=com.zion.os
+export TERMUX_APP_PACKAGE=com.zion.os\nexport TERMUX_APP__PACKAGE_NAME=com.zion.os
 export TERMUX_APP__PACKAGE_NAME=com.zion.os
 
 cd "$WORK"
