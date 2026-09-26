@@ -95,7 +95,7 @@ class _CosmicTerminalState extends State<CosmicTerminal> {
               ),
               padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
               child: Row(children: [
-                const Text('\$ ', style: TextStyle(color: Color(0xFF00FF41), fontFamily: 'monospace')),
+                const Text('> ', style: TextStyle(color: Color(0xFF00FF41), fontFamily: 'monospace')),
                 Expanded(
                   child: TextField(
                     controller: _inputController,
